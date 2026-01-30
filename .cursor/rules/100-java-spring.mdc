@@ -1,0 +1,10 @@
+---
+alwaysApply: true
+---
+# Java Spring Boot Standards
+- Pattern: Controller-Service-Repository.
+- Use Lombok to minimize boilerplate.
+- Port: 8080.
+- Ensure all API endpoints follow RESTful standards.
+- Use Spring Data JPA for PostgreSQL and AWS SDK for DynamoDB.
+- Write unit tests using JUnit 5 and Mockito.

@@ -1,0 +1,9 @@
+---
+alwaysApply: true
+---
+# Global Standards
+- Before every task, check `progress.md` for current state and `spec.md` for technical requirements.
+- Use the "Red-Green-Refactor" loop: Write a test, implement minimal code, then refactor.
+- Never create "implementation_notes.md" or "README.md" inside service folders.
+- After finishing a feature, run the linter and resolve all warnings.
+- Suggest a concise Git commit message after a successful "Tick-Off" in progress.md.
