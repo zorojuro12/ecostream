@@ -1,9 +1,33 @@
 ---
+description: Global project standards and workflow orchestration for EcoStream
+globs: **/*
 alwaysApply: true
 ---
+
 # Global Standards
-- Before every task, check `progress.md` for current state and `spec.md` for technical requirements.
-- Use the "Red-Green-Refactor" loop: Write a test, implement minimal code, then refactor.
-- Never create "implementation_notes.md" or "README.md" inside service folders.
-- After finishing a feature, run the linter and resolve all warnings.
-- Suggest a concise Git commit message after a successful "Tick-Off" in progress.md.
+
+## 1. Orchestration & State Management
+- **Source of Truth:** Before every task, read `spec.md` for technical requirements and `progress.md` for current project state.
+- **State Updates:** Upon completing and verifying a feature, immediately update `progress.md` with a `[x]` and update the "Current State" section in the relevant service-level `README.md`.
+- **Syncing:** Use the chat for planning. Do not create `implementation_notes.md`, `summary.md`, or temporary scratchpad files.
+
+## 2. Development Workflow (TDD)
+- **Red-Green-Refactor:** Always write a failing unit test first to define the "Definition of Done" for a feature.
+- **Implementation:** Write the minimal code necessary to pass the test.
+- **Refactor:** Optimize the code for readability and performance while ensuring tests remain green.
+
+## 3. Documentation Strategy
+- **Service READMEs:** Maintain a `README.md` in each service directory (e.g., `/services/order-service-java/README.md`). 
+- **Content:** These must include Service Purpose, Tech Stack, Local Setup, and a "Current Capabilities" list. 
+- **Prohibition:** Do not create a single, bloated root README for technical details; keep technical documentation local to the service.
+
+## 4. Quality Control
+- **Linting & Formatting:** After finishing a logical block, run the linter/formatter (`Ruff` for Python, `Spotless/Checkstyle` for Java). Resolve all warnings before committing.
+- **Verification:** Ensure the project compiles and all tests pass in the terminal before considering a sub-task complete.
+
+## 5. Git Strategy (Atomic Commits)
+- **Frequency:** Commit every time a single logical "win" is achieved (e.g., a new test passes, a model is defined, or a config is updated).
+- **Format:** Use Conventional Commits: `type(scope): description`.
+  - **Types:** `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`.
+  - **Scopes:** `order`, `ai`, `infra`, `ui`, `global`.
+- **Checkpoint Rule:** The AI must suggest a specific git commit command after every successful execution that passes a test or lint check.
