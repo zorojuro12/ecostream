@@ -1,3 +1,10 @@
 ---
 alwaysApply: true
 ---
+
+# Python FastAPI Standards
+- Use Ruff for linting and formatting.
+- Port: 8000.
+- All request/response bodies must use Pydantic schemas.
+- Keep ML models in `/engine` and API routes in `/api`.
+- Write unit tests using Pytest.
