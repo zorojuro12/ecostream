@@ -27,11 +27,19 @@ The AI Forecasting Service provides delay prediction and route analysis capabili
    ```
 
 2. **Run the Service:**
+   
+   **Option A - Using PowerShell script (Windows):**
+   ```powershell
+   .\start-ai-service.ps1
+   ```
+   This script automatically checks Python, activates virtual environment, installs dependencies, and starts the service.
+
+   **Option B - Manual start:**
    ```bash
    python main.py
    ```
 
-   Or using uvicorn directly:
+   **Option C - Using uvicorn directly:**
    ```bash
    uvicorn main:app --host 0.0.0.0 --port 5000
    ```
@@ -51,6 +59,7 @@ The AI Forecasting Service provides delay prediction and route analysis capabili
 - ✅ Dependencies configured (FastAPI, Uvicorn, Pydantic, Ruff)
 - ✅ Project structure created (`/app/engine`, `/app/api`, `/app/schemas`)
 - ✅ Port configuration via environment variable (default: 5000)
+- ✅ PowerShell startup script (`start-ai-service.ps1`) for Windows convenience
 
 ### Pending Implementation
 - ⏳ Scikit-Learn delay prediction model setup
