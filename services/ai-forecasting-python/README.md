@@ -63,7 +63,7 @@ The AI Forecasting Service provides delay prediction and route analysis capabili
 ## API Contract
 
 ### Endpoints (Planned)
-- `POST /predict/delay`: Accepts order details, returns estimated delay in minutes
+- `POST http://localhost:5000/predict/delay`: Accepts order details, returns estimated delay in minutes
   - **Request Body:** Order details (destination, priority, etc.)
   - **Response:** `{ "estimatedDelayMinutes": int }`
 
