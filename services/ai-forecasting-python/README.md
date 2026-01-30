@@ -33,14 +33,14 @@ The AI Forecasting Service provides delay prediction and route analysis capabili
 
    Or using uvicorn directly:
    ```bash
-   uvicorn main:app --host 0.0.0.0 --port 8000
+   uvicorn main:app --host 0.0.0.0 --port 5000
    ```
 
-   The service will start on port **8000**.
+   The service will start on port **5000** (default, configurable via `PORT` environment variable).
 
 3. **Verify Health:**
    ```bash
-   curl http://localhost:8000/health
+   curl http://localhost:5000/health
    ```
 
 ## Current State
@@ -49,13 +49,15 @@ The AI Forecasting Service provides delay prediction and route analysis capabili
 - ✅ FastAPI application skeleton initialized
 - ✅ Health check endpoint (`/health`) implemented
 - ✅ Dependencies configured (FastAPI, Uvicorn, Pydantic, Ruff)
+- ✅ Project structure created (`/app/engine`, `/app/api`, `/app/schemas`)
+- ✅ Port configuration via environment variable (default: 5000)
 
 ### Pending Implementation
 - ⏳ Scikit-Learn delay prediction model setup
 - ⏳ `/predict/delay` endpoint implementation
 - ⏳ Pydantic request/response schemas for delay prediction
 - ⏳ Amazon Bedrock integration for route analysis
-- ⏳ Project structure reorganization (`/engine` for ML models, `/api` for routes)
+- ⏳ Populate project structure directories with actual implementation
 - ⏳ Unit tests using Pytest
 
 ## API Contract
