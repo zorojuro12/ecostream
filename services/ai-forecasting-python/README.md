@@ -69,6 +69,76 @@ The AI Forecasting Service provides delay prediction and route analysis capabili
 - ⏳ Populate project structure directories with actual implementation
 - ⏳ Unit tests using Pytest
 
+## Verified Commands
+
+### Tool Verification
+```bash
+# Verify Python 3.9+ is installed
+python --version
+# Expected: Python 3.9.x or higher
+
+# Verify pip is available
+pip --version
+# Expected: pip version information
+```
+
+### Dependency Management
+```bash
+# Navigate to service directory
+cd services/ai-forecasting-python
+
+# Install dependencies (global)
+pip install -r requirements.txt
+
+# Or use virtual environment (recommended)
+python -m venv .venv
+.venv\Scripts\activate  # Windows
+source .venv/bin/activate  # Linux/Mac
+pip install -r requirements.txt
+
+# Verify key dependencies
+pip list | findstr "fastapi uvicorn pydantic scikit-learn boto3"
+# Expected: All packages listed with versions
+```
+
+### Run Service
+```bash
+# Option A: PowerShell script (Windows - recommended)
+.\start-ai-service.ps1
+# Automatically: checks Python, creates venv, installs deps, starts service
+
+# Option B: Manual start
+python main.py
+# Expected: Application startup on port 5000
+
+# Option C: Uvicorn directly
+uvicorn main:app --host 0.0.0.0 --port 5000
+# Expected: Uvicorn running on http://0.0.0.0:5000
+```
+
+### Health Check
+```bash
+# Test health endpoint (PowerShell)
+curl.exe http://localhost:5000/health
+# Expected: {"status":"healthy","service":"ai-forecasting"}
+
+# Alternative (PowerShell)
+Invoke-RestMethod -Uri http://localhost:5000/health
+# Expected: status=healthy, service=ai-forecasting
+```
+
+### Development Tools
+```bash
+# Run Ruff linter
+ruff check .
+
+# Format code with Ruff
+ruff format .
+
+# Run tests (when implemented)
+pytest
+```
+
 ## API Contract
 
 ### Endpoints (Planned)

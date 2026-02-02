@@ -39,26 +39,92 @@ The Order Service is responsible for CRUD operations on orders and orchestration
    mvn spring-boot:run
    ```
 
-   The service will start on port **8080**.
+   The service will start on port **8082**.
 
 ### Configuration
+- Service port: 8082 (configured in `application.properties`)
 - PostgreSQL connection: `localhost:5432` (database: `ecostream`, user: `ecostream`, password: `ecostream`)
-- DynamoDB Local: `localhost:9000`
+- DynamoDB Local: `localhost:9000` (external port, 8000 internal)
 
 ## Current State
 
 ### Infrastructure
 - ✅ Spring Boot application skeleton initialized
-- ✅ Maven dependencies configured (Web, JPA, PostgreSQL, Lombok)
+- ✅ Maven dependencies configured (Web, JPA, PostgreSQL, Lombok, AWS SDK)
 - ✅ Docker Compose setup for PostgreSQL and DynamoDB Local
+- ✅ Port configuration: 8082 (configured in `application.properties`)
+- ✅ Database configuration: PostgreSQL connection settings configured
 
-### Pending Implementation
-- ⏳ Health check endpoint (`/health`)
-- ⏳ Order Entity definition (PostgreSQL)
-- ⏳ OrderRepository and CRUD Controller
+### Implemented
+- ✅ Health check endpoint (`/health`) - Returns service status (`HealthController`)
+- ✅ Order Entity definition (PostgreSQL) - `Order.java`, `OrderStatus.java`
+- ✅ OrderRepository - `OrderRepository.java` with custom query methods
+- ⏳ Order CRUD Controller
 - ⏳ DynamoDB Telemetry table setup
 - ⏳ Telemetry Ingestion API
 - ⏳ Integration with AI Forecasting Service
+
+## Verified Commands
+
+### Tool Verification
+```bash
+# Verify Java 21 is installed
+java -version
+# Expected: java version "21.0.x"
+
+# Verify Maven is installed
+mvn -version
+# Expected: Apache Maven 3.8+ with Java 21
+```
+
+### Infrastructure Setup
+```bash
+# Start PostgreSQL and DynamoDB Local
+docker-compose up -d postgres dynamodb-local
+
+# Verify containers are healthy
+docker-compose ps
+# Expected: Both containers show "healthy" status
+
+# Check container health individually
+docker exec ecostream-postgres pg_isready -U ecostream
+# Expected: /var/run/postgresql:5432 - accepting connections
+```
+
+### Build & Run
+```bash
+# Navigate to service directory
+cd services/order-service-java
+
+# Build the service (includes tests)
+mvn clean install
+# Expected: BUILD SUCCESS
+
+# Run the service
+mvn spring-boot:run
+# Expected: Started OrderServiceApplication on port 8082
+```
+
+### Health Check
+```bash
+# Test health endpoint (PowerShell)
+curl.exe http://localhost:8082/health
+# Expected: {"status":"UP","service":"order-service"}
+
+# Alternative (PowerShell)
+Invoke-RestMethod -Uri http://localhost:8082/health
+# Expected: status=UP, service=order-service
+```
+
+### Testing
+```bash
+# Run unit tests
+mvn test
+# Expected: All tests pass
+
+# Run tests with coverage (if configured)
+mvn test jacoco:report
+```
 
 ## Architecture Pattern
 This service follows the **Controller-Service-Repository** pattern:
