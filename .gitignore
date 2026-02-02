@@ -1,8 +1,275 @@
-# Compiled class file
+# ============================================
+# EcoStream - Polyglot Microservices .gitignore
+# ============================================
+
+# ============================================
+# Java / Maven Specific
+# ============================================
+# Compiled class files
 *.class
 
-# Log file
+# Maven build output
+target/
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# Maven wrapper (optional - uncomment if you don't want to track it)
+# .mvn/wrapper/maven-wrapper.jar
+
+# Maven release files
+release.properties
+dependency-reduced-pom.xml
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+
+# Maven local repository (if accidentally included)
+.m2/repository/
+
+# ============================================
+# Python Specific
+# ============================================
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+.ENV/
+.env/
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# ============================================
+# Environment & Secrets
+# ============================================
+# Environment variables
+.env
+.env.local
+.env.*.local
+*.env
+
+# Application properties with sensitive data
+# Note: Keep application.properties.example or application.properties.template if needed
+application.properties
+!application.properties.example
+!application.properties.template
+!**/application.properties.example
+!**/application.properties.template
+
+# Secrets and credentials
+secrets/
+*.pem
+*.key
+*.cert
+*.p12
+*.jks
+credentials.json
+service-account.json
+
+# ============================================
+# IDE & Editor Files
+# ============================================
+# Visual Studio Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# IntelliJ IDEA / Android Studio
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Eclipse
+.classpath
+.project
+.settings/
+bin/
+.metadata/
+
+# NetBeans
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# VS Code / Cursor
+.cursor/
+
+# ============================================
+# OS Specific Files
+# ============================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ============================================
+# Logs & Temporary Files
+# ============================================
+# Log files
 *.log
+logs/
+*.log.*
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+.tmp/
+temp/
+
+# ============================================
+# Docker
+# ============================================
+# Docker build context (if accidentally included)
+.dockerignore
+
+# ============================================
+# Database
+# ============================================
+# Local database files
+*.db
+*.sqlite
+*.sqlite3
+*.db-shm
+*.db-wal
+
+# ============================================
+# Node.js (if frontend is added later)
+# ============================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.yarn-integrity
+.pnp/
+.pnp.js
+
+# ============================================
+# AWS / Cloud
+# ============================================
+.aws/
+.aws-sam/
+serverless.yml.bak
+
+# ============================================
+# Miscellaneous
+# ============================================
+# Backup files
+*.bak
+*.backup
+*~
+
+# Archive files
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# Compiled archives
+*.jar
+*.war
+*.nar
+*.ear
 
 # BlueJ files
 *.ctxt
@@ -10,15 +277,6 @@
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
 
-# Package Files #
-*.jar
-*.war
-*.nar
-*.ear
-*.zip
-*.tar.gz
-*.rar
-
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+# Virtual machine crash logs
 hs_err_pid*
 replay_pid*
