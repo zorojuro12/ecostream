@@ -1,10 +1,10 @@
 ---
+description: Python FastAPI Standards
+globs: services/ai-forecasting-python/**/*
 alwaysApply: true
 ---
-
 # Python FastAPI Standards
-- Use Ruff for linting and formatting.
-- Port: 8000.
-- All request/response bodies must use Pydantic schemas.
-- Keep ML models in `/engine` and API routes in `/api`.
-- Write unit tests using Pytest.
+- **Port:** 5000 (Locked for local orchestration).
+- **Validation:** All request/response bodies must use Pydantic schemas.
+- **Structure:** ML models in `/engine`, API routes in `/api`.
+- **Quality:** Use `Ruff` for formatting and `Pytest` for unit tests.

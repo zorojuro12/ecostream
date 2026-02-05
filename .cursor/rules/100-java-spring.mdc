@@ -1,10 +1,28 @@
 ---
+description: Java Spring Boot development standards, directory structures, and patterns
+globs: services/order-service-java/**/*
 alwaysApply: true
 ---
-# Java Spring Boot Standards
-- Pattern: Controller-Service-Repository.
-- Use Lombok to minimize boilerplate.
-- Port: 8080.
-- Ensure all API endpoints follow RESTful standards.
-- Use Spring Data JPA for PostgreSQL and AWS SDK for DynamoDB.
-- Write unit tests using JUnit 5 and Mockito.
+
+# Java Spring Boot Rules
+
+## 1. Project Structure & Organization
+- **Pattern:** Strictly follow the Controller-Service-Repository architectural pattern.
+- **Packages:** - Controllers: `com.ecostream.order.controller`
+  - Models/Entities: `com.ecostream.order.model`
+  - Services: `com.ecostream.order.service`
+- **Configuration:** `src/main/resources/application.properties` must be the source of truth for DB and Port (8082) settings.
+
+## 2. Implementation Standards
+- **Boilerplate:** Use Lombok (`@Data`, `@NoArgsConstructor`, `@AllArgsConstructor`, `@Builder`) for Entities and DTOs.
+- **Logging:** Use `@Slf4j` for structured logging of operational health and latency.
+- **Validation:** Use `jakarta.validation.constraints` for all API inputs.
+  - Coordinate ranges must be enforced: Latitude (-90 to 90), Longitude (-180 to 180).
+
+## 3. Persistence & Data
+- **PostgreSQL:** Use Spring Data JPA for all relational operations.
+- **DynamoDB Local:** Use AWS SDK v2. **Constraint:** You must explicitly override the endpoint to `http://localhost:9000` in the client configuration.
+
+## 4. Testing & Quality
+- **Frameworks:** Write unit tests using JUnit 5 and Mockito.
+- **Requirement:** Every new Controller method must have a corresponding test case before implementation is considered "Done".
