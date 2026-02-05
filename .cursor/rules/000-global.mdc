@@ -31,3 +31,7 @@ alwaysApply: true
   - **Types:** `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`.
   - **Scopes:** `order`, `ai`, `infra`, `ui`, `global`.
 - **Checkpoint Rule:** The AI must suggest a specific git commit command after every successful execution that passes a test or lint check.
+
+# 6. Infrastructure Guardrails
+- **Ports:** Order Service: **8082** | AI Service: **5000** | Postgres: **5432** | DynamoDB: **9000**.
+- **Local DB:** All DynamoDB connections MUST override the endpoint to `http://localhost:9000`.
