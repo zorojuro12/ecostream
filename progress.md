@@ -13,6 +13,8 @@
 ## Phase 2: Core Data & Logic (The "Order" System)
 - [x] Define the `Order` Entity in Java (PostgreSQL).
 - [x] Implement `OrderRepository` interface.
+- [x] Establish data contracts (DTOs) and validation.
+- [ ] Implement OrderService (in progress: createOrder implemented with TDD).
 - [ ] Implement Basic CRUD Controller.
 - [ ] Setup DynamoDB Telemetry Table (Real-time tracking).
 - [ ] Implement Telemetry Ingestion API (Java -> DynamoDB).
