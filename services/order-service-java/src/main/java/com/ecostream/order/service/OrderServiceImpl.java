@@ -54,8 +54,18 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Optional<OrderResponseDTO> getOrderById(UUID id) {
-        // TODO: Implement in next iteration
-        throw new UnsupportedOperationException("Not yet implemented");
+        log.debug("Retrieving order with ID: {}", id);
+        
+        Optional<Order> orderOptional = orderRepository.findById(id);
+        
+        if (orderOptional.isEmpty()) {
+            log.debug("Order not found with ID: {}", id);
+            return Optional.empty();
+        }
+        
+        Order order = orderOptional.get();
+        log.info("Order retrieved successfully with ID: {}", id);
+        return Optional.of(mapToResponseDTO(order));
     }
 
     @Override

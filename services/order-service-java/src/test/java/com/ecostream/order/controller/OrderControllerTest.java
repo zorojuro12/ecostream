@@ -15,8 +15,11 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.UUID;
 
+import java.util.Optional;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -73,5 +76,48 @@ class OrderControllerTest {
                 .andExpect(jsonPath("$.destination.latitude").value(37.7749))
                 .andExpect(jsonPath("$.destination.longitude").value(-122.4194))
                 .andExpect(jsonPath("$.priority").value(5));
+    }
+
+    @Test
+    void getOrderById_ShouldReturn200Ok_WhenOrderExists() throws Exception {
+        // Arrange: Create order ID and response DTO
+        UUID orderId = UUID.randomUUID();
+        LocationDTO locationDTO = LocationDTO.builder()
+                .latitude(37.7749)
+                .longitude(-122.4194)
+                .build();
+
+        OrderResponseDTO responseDTO = OrderResponseDTO.builder()
+                .id(orderId)
+                .status(OrderStatus.PENDING)
+                .destination(locationDTO)
+                .priority(5)
+                .build();
+
+        // Arrange: Mock service to return Optional with response DTO
+        when(orderService.getOrderById(orderId)).thenReturn(Optional.of(responseDTO));
+
+        // Act & Assert: GET request and verify 200 OK response
+        mockMvc.perform(get("/api/orders/{id}", orderId))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(orderId.toString()))
+                .andExpect(jsonPath("$.status").value("PENDING"))
+                .andExpect(jsonPath("$.destination.latitude").value(37.7749))
+                .andExpect(jsonPath("$.destination.longitude").value(-122.4194))
+                .andExpect(jsonPath("$.priority").value(5));
+    }
+
+    @Test
+    void getOrderById_ShouldReturn404NotFound_WhenOrderDoesNotExist() throws Exception {
+        // Arrange: Create order ID
+        UUID orderId = UUID.randomUUID();
+
+        // Arrange: Mock service to return empty Optional
+        when(orderService.getOrderById(orderId)).thenReturn(Optional.empty());
+
+        // Act & Assert: GET request and verify 404 Not Found response
+        mockMvc.perform(get("/api/orders/{id}", orderId))
+                .andExpect(status().isNotFound());
     }
 }
