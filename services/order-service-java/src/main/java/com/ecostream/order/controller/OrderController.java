@@ -10,6 +10,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Optional;
+import java.util.UUID;
+
 /**
  * REST controller for order management operations.
  * Provides CRUD endpoints for the Order Service.
@@ -36,5 +39,26 @@ public class OrderController {
         
         log.debug("Order created successfully with ID: {}", response.getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    /**
+     * Retrieves an order by its unique identifier.
+     *
+     * @param id the UUID of the order to retrieve
+     * @return the order with 200 OK status if found, 404 Not Found otherwise
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<OrderResponseDTO> getOrderById(@PathVariable UUID id) {
+        log.debug("Received request to retrieve order with ID: {}", id);
+        
+        Optional<OrderResponseDTO> orderOptional = orderService.getOrderById(id);
+        
+        if (orderOptional.isEmpty()) {
+            log.debug("Order not found with ID: {}", id);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        
+        log.debug("Order retrieved successfully with ID: {}", id);
+        return ResponseEntity.ok(orderOptional.get());
     }
 }
