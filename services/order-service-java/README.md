@@ -50,16 +50,36 @@ The Order Service is responsible for CRUD operations on orders and orchestration
 
 ### Infrastructure
 - ✅ Spring Boot application skeleton initialized
-- ✅ Maven dependencies configured (Web, JPA, PostgreSQL, Lombok, AWS SDK)
+- ✅ Maven dependencies configured (Web, JPA, PostgreSQL, Lombok, AWS SDK, Validation)
 - ✅ Docker Compose setup for PostgreSQL and DynamoDB Local
 - ✅ Port configuration: 8082 (configured in `application.properties`)
 - ✅ Database configuration: PostgreSQL connection settings configured
+
+### Current Capabilities
+- ✅ **Order Creation:** Create new orders via `POST /api/orders` with validation
+  - Automatically sets order status to `PENDING` regardless of request
+  - Validates coordinate ranges (latitude: -90 to 90, longitude: -180 to 180)
+  - Returns created order with generated UUID
+- ✅ **Order Retrieval:** Retrieve orders by ID via `GET /api/orders/{id}`
+  - Returns 200 OK with order data when found
+  - Returns 404 Not Found when order doesn't exist
+- ✅ **Data Validation:** All API inputs validated using Jakarta Validation
+  - Coordinate range validation in `LocationDTO`
+  - Required field validation in `OrderRequestDTO`
+- ✅ **Test Coverage:** Comprehensive unit tests using JUnit 5 and Mockito
+  - Controller tests with MockMvc
+  - Service tests with mocked repository
+  - Entity tests for data model validation
 
 ### Implemented
 - ✅ Health check endpoint (`/health`) - Returns service status (`HealthController`)
 - ✅ Order Entity definition (PostgreSQL) - `Order.java`, `OrderStatus.java`
 - ✅ OrderRepository - `OrderRepository.java` with custom query methods
-- ⏳ Order CRUD Controller
+- ✅ Data Contracts (DTOs) - `LocationDTO`, `OrderRequestDTO`, `OrderResponseDTO` with validation
+- ✅ OrderService - `OrderServiceImpl` with `createOrder` and `getOrderById` methods
+- ✅ Order CRUD Controller - `OrderController` with REST endpoints:
+  - `POST /api/orders` - Create new order (returns 201 Created)
+  - `GET /api/orders/{id}` - Retrieve order by ID (returns 200 OK or 404 Not Found)
 - ⏳ DynamoDB Telemetry table setup
 - ⏳ Telemetry Ingestion API
 - ⏳ Integration with AI Forecasting Service
