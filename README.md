@@ -70,8 +70,8 @@ A robust pipeline via **GitHub Actions** automates testing and deployment to AWS
 
 1.  **Clone the Repository:**
     ```bash
-    git clone [https://github.com/](https://github.com/)[Your-Username]/ecostream-logistics.git
-    cd ecostream-logistics
+    git clone [https://github.com/](https://github.com/)[Your-Username]/ecostream.git
+    cd ecostream
     ```
 2.  **Environment Setup:**
     Create a `.env` file in the root directory and add your AWS credentials and database connection strings.
