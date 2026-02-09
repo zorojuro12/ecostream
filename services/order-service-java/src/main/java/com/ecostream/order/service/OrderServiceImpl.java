@@ -120,8 +120,16 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public boolean deleteOrder(UUID id) {
-        // TODO: Implement in next iteration
-        throw new UnsupportedOperationException("Not yet implemented");
+        log.debug("Deleting order with ID: {}", id);
+        
+        if (!orderRepository.existsById(id)) {
+            log.debug("Order not found with ID: {}", id);
+            return false;
+        }
+        
+        orderRepository.deleteById(id);
+        log.info("Order deleted successfully with ID: {}", id);
+        return true;
     }
 
     /**

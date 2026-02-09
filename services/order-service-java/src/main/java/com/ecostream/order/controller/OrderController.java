@@ -102,4 +102,25 @@ public class OrderController {
         log.debug("Order updated successfully with ID: {}", id);
         return ResponseEntity.ok(orderOptional.get());
     }
+
+    /**
+     * Deletes an order by its unique identifier.
+     *
+     * @param id the UUID of the order to delete
+     * @return 204 No Content if deleted, 404 Not Found if order doesn't exist
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteOrder(@PathVariable UUID id) {
+        log.debug("Received request to delete order with ID: {}", id);
+        
+        boolean deleted = orderService.deleteOrder(id);
+        
+        if (!deleted) {
+            log.debug("Order not found with ID: {}", id);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        
+        log.debug("Order deleted successfully with ID: {}", id);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
 }
