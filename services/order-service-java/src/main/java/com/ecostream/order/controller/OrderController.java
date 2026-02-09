@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -60,5 +61,20 @@ public class OrderController {
         
         log.debug("Order retrieved successfully with ID: {}", id);
         return ResponseEntity.ok(orderOptional.get());
+    }
+
+    /**
+     * Retrieves all orders in the system.
+     *
+     * @return list of all orders with 200 OK status
+     */
+    @GetMapping
+    public ResponseEntity<List<OrderResponseDTO>> getAllOrders() {
+        log.debug("Received request to retrieve all orders");
+        
+        List<OrderResponseDTO> orders = orderService.getAllOrders();
+        
+        log.debug("Retrieved {} orders", orders.size());
+        return ResponseEntity.ok(orders);
     }
 }

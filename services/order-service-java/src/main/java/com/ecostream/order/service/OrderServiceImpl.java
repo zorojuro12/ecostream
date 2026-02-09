@@ -70,8 +70,14 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public List<OrderResponseDTO> getAllOrders() {
-        // TODO: Implement in next iteration
-        throw new UnsupportedOperationException("Not yet implemented");
+        log.debug("Retrieving all orders");
+        
+        List<Order> orders = orderRepository.findAll();
+        log.info("Retrieved {} orders", orders.size());
+        
+        return orders.stream()
+                .map(this::mapToResponseDTO)
+                .toList();
     }
 
     @Override
