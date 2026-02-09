@@ -14,9 +14,10 @@
 - [x] Define the `Order` Entity in Java (PostgreSQL).
 - [x] Implement `OrderRepository` interface.
 - [x] Establish data contracts (DTOs) and validation.
-- [x] Implement OrderService (createOrder and getOrderById implemented with TDD).
-- [x] Implement Basic CRUD Controller (POST /api/orders, GET /api/orders/{id}).
-- [ ] Setup DynamoDB Telemetry Table (Real-time tracking).
+- [x] Implement OrderService (full CRUD operations implemented with TDD).
+- [x] Implement Basic CRUD Controller (all endpoints: POST, GET all, GET by ID, PUT, DELETE).
+- [x] Setup DynamoDB Telemetry Table (Real-time tracking).
+- [x] Implement Telemetry data layer (Telemetry entity, TelemetryRepository, DynamoDB config).
 - [ ] Implement Telemetry Ingestion API (Java -> DynamoDB).
 
 ## Phase 3: AI & Forecasting (The "Brain")
