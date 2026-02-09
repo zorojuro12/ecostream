@@ -62,6 +62,12 @@ The Order Service is responsible for CRUD operations on orders and orchestration
   - `GET /api/orders/{id}` - Get order by ID (returns 200 OK or 404 Not Found)
   - `PUT /api/orders/{id}` - Update order (returns 200 OK or 404 Not Found)
   - `DELETE /api/orders/{id}` - Delete order (returns 204 No Content or 404 Not Found)
+- ✅ **Telemetry Ingestion:** Real-time tracking data ingestion
+  - `POST /api/orders/{id}/telemetry` - Ingest telemetry data (returns 202 Accepted)
+  - Accepts `LocationDTO` with current coordinates
+  - Automatically generates timestamp (epoch seconds)
+  - Saves to DynamoDB with orderId (partition key) and timestamp (sort key)
+  - Console logging for real-time monitoring
 - ✅ **Order Creation:** Create new orders with validation
   - Automatically sets order status to `PENDING` regardless of request
   - Validates coordinate ranges (latitude: -90 to 90, longitude: -180 to 180)
@@ -80,8 +86,8 @@ The Order Service is responsible for CRUD operations on orders and orchestration
   - DynamoDB Local configuration with endpoint override
   - Table creation script available
 - ✅ **Test Coverage:** Comprehensive unit tests using JUnit 5 and Mockito
-  - 12 total tests (8 controller, 3 entity, 1 service)
-  - Controller tests with MockMvc covering all CRUD endpoints
+  - 13 total tests (9 controller, 3 entity, 1 service)
+  - Controller tests with MockMvc covering all CRUD endpoints and telemetry ingestion
   - Service tests with mocked repository
   - Entity tests for data model validation
 
@@ -102,13 +108,22 @@ The Order Service is responsible for CRUD operations on orders and orchestration
   - `GET /api/orders/{id}` - Get order by ID (returns 200 OK or 404 Not Found)
   - `PUT /api/orders/{id}` - Update order (returns 200 OK or 404 Not Found)
   - `DELETE /api/orders/{id}` - Delete order (returns 204 No Content or 404 Not Found)
+  - `POST /api/orders/{id}/telemetry` - Ingest telemetry data (returns 202 Accepted)
+- ✅ Telemetry Ingestion:
+  - `ingestTelemetry()` method in OrderService
+  - Saves telemetry records to DynamoDB with automatic timestamp generation
+  - Real-time console logging for monitoring (orderId and timestamp)
 - ✅ DynamoDB Telemetry Infrastructure:
   - `Telemetry` entity with DynamoDB annotations
   - `TelemetryRepository` using Enhanced Client
   - `DynamoDbConfig` with local endpoint override
   - Table creation script (`scripts/create-telemetry-table.ps1`)
   - Table verified: `ecostream-telemetry-local` (ACTIVE)
-- ⏳ Telemetry Ingestion API (endpoint to receive telemetry data)
+- ✅ Telemetry Ingestion API:
+  - `POST /api/orders/{id}/telemetry` endpoint implemented
+  - Accepts `LocationDTO` with coordinate validation
+  - Saves to DynamoDB with orderId and timestamp
+  - Real-time console logging for observability
 - ⏳ Integration with AI Forecasting Service
 
 ## Verified Commands
