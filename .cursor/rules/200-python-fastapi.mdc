@@ -1,10 +1,26 @@
 ---
-description: Python FastAPI Standards
+description: Python FastAPI development standards, service structure, and ML integration
 globs: services/ai-forecasting-python/**/*
 alwaysApply: true
 ---
-# Python FastAPI Standards
-- **Port:** 5000 (Locked for local orchestration).
-- **Validation:** All request/response bodies must use Pydantic schemas.
-- **Structure:** ML models in `/engine`, API routes in `/api`.
-- **Quality:** Use `Ruff` for formatting and `Pytest` for unit tests.
+
+# Python FastAPI Rules
+
+## 1. Execution & Environment
+- **Port:** Strictly use port **5000** for local orchestration and service discovery.
+- **Startup:** Always use `uvicorn main:app --host 0.0.0.0 --port 5000` for consistent container/host mapping.
+- **Dependencies:** Manage via `requirements.txt`. Ensure `scikit-learn` and `boto3` are present and utilized for ML and AWS AI tasks.
+
+## 2. Project Structure & Endpoints
+- **Organization:** - Keep ML models and forecasting logic in `/app/engine`.
+  - Keep API route definitions in `/app/api`.
+- **Health Check:** Maintain `GET /health` returning `{"status": "healthy", "service": "ai-forecasting"}`.
+- **Standards:** All request/response bodies must use **Pydantic v2** schemas.
+
+## 3. Data & AI Logic
+- **Validation:** Use Pydantic to strictly validate coordinate inputs (Latitude: -90 to 90, Longitude: -180 to 180).
+- **Inference:** Ensure ML forecasting logic is decoupled from the API layer for easier unit testing.
+
+## 4. Code Quality & Testing
+- **Linting/Formatting:** Use **Ruff** for all linting and formatting tasks.
+- **Testing:** Write unit tests using **Pytest**. Every new endpoint in `/api` must have a corresponding test in the `/tests` directory.
