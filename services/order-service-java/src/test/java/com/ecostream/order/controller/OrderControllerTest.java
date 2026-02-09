@@ -261,4 +261,20 @@ class OrderControllerTest {
         mockMvc.perform(delete("/api/orders/{id}", orderId))
                 .andExpect(status().isNotFound());
     }
+
+    @Test
+    void ingestTelemetry_ShouldReturn202Accepted() throws Exception {
+        // Arrange: Create order ID and location DTO
+        UUID orderId = UUID.randomUUID();
+        LocationDTO locationDTO = LocationDTO.builder()
+                .latitude(37.7749)
+                .longitude(-122.4194)
+                .build();
+
+        // Act & Assert: POST request and verify 202 Accepted response
+        mockMvc.perform(post("/api/orders/{id}/telemetry", orderId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(locationDTO)))
+                .andExpect(status().isAccepted());
+    }
 }
