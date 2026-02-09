@@ -25,6 +25,7 @@ import java.util.List;
 
 import com.ecostream.order.dto.UpdateOrderRequestDTO;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -232,6 +233,32 @@ class OrderControllerTest {
         mockMvc.perform(put("/api/orders/{id}", orderId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateRequest)))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void deleteOrder_ShouldReturn204NoContent_WhenOrderExists() throws Exception {
+        // Arrange: Create order ID
+        UUID orderId = UUID.randomUUID();
+
+        // Arrange: Mock service to return true (order deleted)
+        when(orderService.deleteOrder(eq(orderId))).thenReturn(true);
+
+        // Act & Assert: DELETE request and verify 204 No Content response
+        mockMvc.perform(delete("/api/orders/{id}", orderId))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void deleteOrder_ShouldReturn404NotFound_WhenOrderDoesNotExist() throws Exception {
+        // Arrange: Create order ID
+        UUID orderId = UUID.randomUUID();
+
+        // Arrange: Mock service to return false (order not found)
+        when(orderService.deleteOrder(eq(orderId))).thenReturn(false);
+
+        // Act & Assert: DELETE request and verify 404 Not Found response
+        mockMvc.perform(delete("/api/orders/{id}", orderId))
                 .andExpect(status().isNotFound());
     }
 }
