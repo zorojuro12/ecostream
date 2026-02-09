@@ -153,7 +153,9 @@ public class OrderServiceImpl implements OrderService {
         // Save to DynamoDB
         telemetryRepository.save(telemetry);
         
+        // Real-time monitoring: Log ingestion details to console
         log.info("Telemetry ingested successfully for orderId: {}, timestamp: {}", orderId, timestamp);
+        System.out.println(String.format("[TELEMETRY] orderId=%s, timestamp=%d", orderId, timestamp));
     }
 
     /**
