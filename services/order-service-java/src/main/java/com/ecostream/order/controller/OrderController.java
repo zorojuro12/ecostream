@@ -1,5 +1,6 @@
 package com.ecostream.order.controller;
 
+import com.ecostream.order.dto.LocationDTO;
 import com.ecostream.order.dto.OrderRequestDTO;
 import com.ecostream.order.dto.OrderResponseDTO;
 import com.ecostream.order.dto.UpdateOrderRequestDTO;
@@ -122,5 +123,25 @@ public class OrderController {
         
         log.debug("Order deleted successfully with ID: {}", id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+    /**
+     * Ingests telemetry data for an order.
+     * Saves current coordinates to DynamoDB with a timestamp.
+     *
+     * @param id the UUID of the order
+     * @param location the current location coordinates
+     * @return 202 Accepted status
+     */
+    @PostMapping("/{id}/telemetry")
+    public ResponseEntity<Void> ingestTelemetry(
+            @PathVariable UUID id,
+            @Valid @RequestBody LocationDTO location) {
+        log.debug("Received telemetry data for order ID: {}", id);
+        
+        orderService.ingestTelemetry(id, location);
+        
+        log.debug("Telemetry ingestion accepted for order ID: {}", id);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).build();
     }
 }
