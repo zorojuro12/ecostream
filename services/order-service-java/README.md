@@ -56,18 +56,32 @@ The Order Service is responsible for CRUD operations on orders and orchestration
 - ✅ Database configuration: PostgreSQL connection settings configured
 
 ### Current Capabilities
-- ✅ **Order Creation:** Create new orders via `POST /api/orders` with validation
+- ✅ **Full CRUD Operations:** Complete REST API for order management
+  - `POST /api/orders` - Create new order (returns 201 Created)
+  - `GET /api/orders` - List all orders (returns 200 OK)
+  - `GET /api/orders/{id}` - Get order by ID (returns 200 OK or 404 Not Found)
+  - `PUT /api/orders/{id}` - Update order (returns 200 OK or 404 Not Found)
+  - `DELETE /api/orders/{id}` - Delete order (returns 204 No Content or 404 Not Found)
+- ✅ **Order Creation:** Create new orders with validation
   - Automatically sets order status to `PENDING` regardless of request
   - Validates coordinate ranges (latitude: -90 to 90, longitude: -180 to 180)
   - Returns created order with generated UUID
-- ✅ **Order Retrieval:** Retrieve orders by ID via `GET /api/orders/{id}`
-  - Returns 200 OK with order data when found
-  - Returns 404 Not Found when order doesn't exist
+- ✅ **Order Updates:** Partial updates supported via `UpdateOrderRequestDTO`
+  - All fields optional (status, destination, priority)
+  - Allows status changes during order lifecycle
+  - Validates coordinate ranges when destination is provided
 - ✅ **Data Validation:** All API inputs validated using Jakarta Validation
   - Coordinate range validation in `LocationDTO`
   - Required field validation in `OrderRequestDTO`
+  - Optional field validation in `UpdateOrderRequestDTO`
+- ✅ **Telemetry Infrastructure:** DynamoDB data layer ready
+  - `Telemetry` entity with orderId (partition key) and timestamp (sort key)
+  - `TelemetryRepository` using AWS SDK v2 Enhanced Client
+  - DynamoDB Local configuration with endpoint override
+  - Table creation script available
 - ✅ **Test Coverage:** Comprehensive unit tests using JUnit 5 and Mockito
-  - Controller tests with MockMvc
+  - 12 total tests (8 controller, 3 entity, 1 service)
+  - Controller tests with MockMvc covering all CRUD endpoints
   - Service tests with mocked repository
   - Entity tests for data model validation
 
@@ -75,13 +89,26 @@ The Order Service is responsible for CRUD operations on orders and orchestration
 - ✅ Health check endpoint (`/health`) - Returns service status (`HealthController`)
 - ✅ Order Entity definition (PostgreSQL) - `Order.java`, `OrderStatus.java`
 - ✅ OrderRepository - `OrderRepository.java` with custom query methods
-- ✅ Data Contracts (DTOs) - `LocationDTO`, `OrderRequestDTO`, `OrderResponseDTO` with validation
-- ✅ OrderService - `OrderServiceImpl` with `createOrder` and `getOrderById` methods
-- ✅ Order CRUD Controller - `OrderController` with REST endpoints:
+- ✅ Data Contracts (DTOs) - `LocationDTO`, `OrderRequestDTO`, `OrderResponseDTO`, `UpdateOrderRequestDTO` with validation
+- ✅ OrderService - `OrderServiceImpl` with full CRUD operations:
+  - `createOrder()` - Creates new orders with PENDING status
+  - `getOrderById()` - Retrieves order by UUID
+  - `getAllOrders()` - Retrieves all orders
+  - `updateOrder()` - Updates order with partial updates
+  - `deleteOrder()` - Deletes order by UUID
+- ✅ Order CRUD Controller - `OrderController` with complete REST API:
   - `POST /api/orders` - Create new order (returns 201 Created)
-  - `GET /api/orders/{id}` - Retrieve order by ID (returns 200 OK or 404 Not Found)
-- ⏳ DynamoDB Telemetry table setup
-- ⏳ Telemetry Ingestion API
+  - `GET /api/orders` - List all orders (returns 200 OK)
+  - `GET /api/orders/{id}` - Get order by ID (returns 200 OK or 404 Not Found)
+  - `PUT /api/orders/{id}` - Update order (returns 200 OK or 404 Not Found)
+  - `DELETE /api/orders/{id}` - Delete order (returns 204 No Content or 404 Not Found)
+- ✅ DynamoDB Telemetry Infrastructure:
+  - `Telemetry` entity with DynamoDB annotations
+  - `TelemetryRepository` using Enhanced Client
+  - `DynamoDbConfig` with local endpoint override
+  - Table creation script (`scripts/create-telemetry-table.ps1`)
+  - Table verified: `ecostream-telemetry-local` (ACTIVE)
+- ⏳ Telemetry Ingestion API (endpoint to receive telemetry data)
 - ⏳ Integration with AI Forecasting Service
 
 ## Verified Commands
