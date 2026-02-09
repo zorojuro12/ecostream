@@ -2,6 +2,7 @@ package com.ecostream.order.service;
 
 import com.ecostream.order.dto.OrderRequestDTO;
 import com.ecostream.order.dto.OrderResponseDTO;
+import com.ecostream.order.dto.UpdateOrderRequestDTO;
 
 import java.util.List;
 import java.util.Optional;
@@ -43,7 +44,7 @@ public interface OrderService {
      * @param request the order update request containing new values
      * @return an Optional containing the updated OrderResponseDTO if found, empty otherwise
      */
-    Optional<OrderResponseDTO> updateOrder(UUID id, OrderRequestDTO request);
+    Optional<OrderResponseDTO> updateOrder(UUID id, UpdateOrderRequestDTO request);
 
     /**
      * Deletes an order by its unique identifier.
