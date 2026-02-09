@@ -78,6 +78,12 @@
             <artifactId>dynamodb</artifactId>
         </dependency>
 
+        <!-- AWS SDK for DynamoDB Enhanced Client -->
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>dynamodb-enhanced</artifactId>
+        </dependency>
+
         <!-- Spring Boot Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
