@@ -6,7 +6,9 @@ import com.ecostream.order.dto.OrderResponseDTO;
 import com.ecostream.order.dto.UpdateOrderRequestDTO;
 import com.ecostream.order.entity.Order;
 import com.ecostream.order.entity.OrderStatus;
+import com.ecostream.order.entity.Telemetry;
 import com.ecostream.order.repository.OrderRepository;
+import com.ecostream.order.repository.TelemetryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,6 +27,7 @@ import java.util.UUID;
 public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
+    private final TelemetryRepository telemetryRepository;
 
     /**
      * Creates a new order from the provided request DTO.
@@ -130,6 +133,27 @@ public class OrderServiceImpl implements OrderService {
         orderRepository.deleteById(id);
         log.info("Order deleted successfully with ID: {}", id);
         return true;
+    }
+
+    @Override
+    public void ingestTelemetry(UUID orderId, LocationDTO location) {
+        log.debug("Ingesting telemetry for orderId: {}", orderId);
+        
+        // Get current timestamp in epoch seconds
+        long timestamp = java.time.Instant.now().getEpochSecond();
+        
+        // Create telemetry entity
+        Telemetry telemetry = Telemetry.builder()
+                .orderId(orderId.toString())
+                .timestamp(timestamp)
+                .currentLatitude(location.getLatitude())
+                .currentLongitude(location.getLongitude())
+                .build();
+        
+        // Save to DynamoDB
+        telemetryRepository.save(telemetry);
+        
+        log.info("Telemetry ingested successfully for orderId: {}, timestamp: {}", orderId, timestamp);
     }
 
     /**

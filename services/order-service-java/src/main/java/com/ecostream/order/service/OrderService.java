@@ -53,4 +53,13 @@ public interface OrderService {
      * @return true if the order was deleted, false if it was not found
      */
     boolean deleteOrder(UUID id);
+
+    /**
+     * Ingests telemetry data for an order.
+     * Saves the current coordinates to DynamoDB with a timestamp.
+     *
+     * @param orderId the UUID of the order
+     * @param location the current location coordinates
+     */
+    void ingestTelemetry(UUID orderId, com.ecostream.order.dto.LocationDTO location);
 }

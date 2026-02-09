@@ -19,6 +19,7 @@ import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import java.util.Arrays;
 import java.util.List;
@@ -270,6 +271,9 @@ class OrderControllerTest {
                 .latitude(37.7749)
                 .longitude(-122.4194)
                 .build();
+
+        // Arrange: Mock service to do nothing (void method)
+        doNothing().when(orderService).ingestTelemetry(eq(orderId), any(LocationDTO.class));
 
         // Act & Assert: POST request and verify 202 Accepted response
         mockMvc.perform(post("/api/orders/{id}/telemetry", orderId)
