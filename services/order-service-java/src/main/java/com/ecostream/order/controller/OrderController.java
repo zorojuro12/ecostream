@@ -2,6 +2,7 @@ package com.ecostream.order.controller;
 
 import com.ecostream.order.dto.OrderRequestDTO;
 import com.ecostream.order.dto.OrderResponseDTO;
+import com.ecostream.order.dto.UpdateOrderRequestDTO;
 import com.ecostream.order.service.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -76,5 +77,29 @@ public class OrderController {
         
         log.debug("Retrieved {} orders", orders.size());
         return ResponseEntity.ok(orders);
+    }
+
+    /**
+     * Updates an existing order.
+     *
+     * @param id the UUID of the order to update
+     * @param request the order update request
+     * @return the updated order with 200 OK status if found, 404 Not Found otherwise
+     */
+    @PutMapping("/{id}")
+    public ResponseEntity<OrderResponseDTO> updateOrder(
+            @PathVariable UUID id,
+            @Valid @RequestBody UpdateOrderRequestDTO request) {
+        log.debug("Received request to update order with ID: {}", id);
+        
+        Optional<OrderResponseDTO> orderOptional = orderService.updateOrder(id, request);
+        
+        if (orderOptional.isEmpty()) {
+            log.debug("Order not found with ID: {}", id);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        
+        log.debug("Order updated successfully with ID: {}", id);
+        return ResponseEntity.ok(orderOptional.get());
     }
 }

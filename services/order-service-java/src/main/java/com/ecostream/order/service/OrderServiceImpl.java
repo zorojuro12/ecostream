@@ -3,6 +3,7 @@ package com.ecostream.order.service;
 import com.ecostream.order.dto.LocationDTO;
 import com.ecostream.order.dto.OrderRequestDTO;
 import com.ecostream.order.dto.OrderResponseDTO;
+import com.ecostream.order.dto.UpdateOrderRequestDTO;
 import com.ecostream.order.entity.Order;
 import com.ecostream.order.entity.OrderStatus;
 import com.ecostream.order.repository.OrderRepository;
@@ -81,9 +82,40 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Optional<OrderResponseDTO> updateOrder(UUID id, OrderRequestDTO request) {
-        // TODO: Implement in next iteration
-        throw new UnsupportedOperationException("Not yet implemented");
+    public Optional<OrderResponseDTO> updateOrder(UUID id, UpdateOrderRequestDTO request) {
+        log.debug("Updating order with ID: {}", id);
+        
+        Optional<Order> orderOptional = orderRepository.findById(id);
+        
+        if (orderOptional.isEmpty()) {
+            log.debug("Order not found with ID: {}", id);
+            return Optional.empty();
+        }
+        
+        Order order = orderOptional.get();
+        
+        // Update fields if provided in request
+        if (request.getStatus() != null) {
+            order.setStatus(request.getStatus());
+            log.debug("Updated status to: {}", request.getStatus());
+        }
+        
+        if (request.getDestination() != null) {
+            order.setDestinationLatitude(request.getDestination().getLatitude());
+            order.setDestinationLongitude(request.getDestination().getLongitude());
+            log.debug("Updated destination coordinates");
+        }
+        
+        if (request.getPriority() != null) {
+            order.setPriority(request.getPriority());
+            log.debug("Updated priority to: {}", request.getPriority());
+        }
+        
+        // Save updated order
+        Order updatedOrder = orderRepository.save(order);
+        log.info("Order updated successfully with ID: {}", id);
+        
+        return Optional.of(mapToResponseDTO(updatedOrder));
     }
 
     @Override

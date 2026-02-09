@@ -18,12 +18,16 @@ import java.util.UUID;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import java.util.Arrays;
 import java.util.List;
 
+import com.ecostream.order.dto.UpdateOrderRequestDTO;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
@@ -170,5 +174,64 @@ class OrderControllerTest {
                 .andExpect(jsonPath("$[1].id").value(orderId2.toString()))
                 .andExpect(jsonPath("$[1].status").value("CONFIRMED"))
                 .andExpect(jsonPath("$[1].priority").value(3));
+    }
+
+    @Test
+    void updateOrder_ShouldReturn200Ok_WhenOrderExists() throws Exception {
+        // Arrange: Create order ID and update request
+        UUID orderId = UUID.randomUUID();
+        LocationDTO newLocation = LocationDTO.builder()
+                .latitude(40.7128)
+                .longitude(-74.0060)
+                .build();
+
+        UpdateOrderRequestDTO updateRequest = UpdateOrderRequestDTO.builder()
+                .status(OrderStatus.CONFIRMED)
+                .destination(newLocation)
+                .priority(10)
+                .build();
+
+        // Arrange: Create updated response DTO
+        OrderResponseDTO updatedResponse = OrderResponseDTO.builder()
+                .id(orderId)
+                .status(OrderStatus.CONFIRMED)
+                .destination(newLocation)
+                .priority(10)
+                .build();
+
+        // Arrange: Mock service to return updated order
+        when(orderService.updateOrder(eq(orderId), any(UpdateOrderRequestDTO.class)))
+                .thenReturn(Optional.of(updatedResponse));
+
+        // Act & Assert: PUT request and verify 200 OK response
+        mockMvc.perform(put("/api/orders/{id}", orderId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateRequest)))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(orderId.toString()))
+                .andExpect(jsonPath("$.status").value("CONFIRMED"))
+                .andExpect(jsonPath("$.destination.latitude").value(40.7128))
+                .andExpect(jsonPath("$.destination.longitude").value(-74.0060))
+                .andExpect(jsonPath("$.priority").value(10));
+    }
+
+    @Test
+    void updateOrder_ShouldReturn404NotFound_WhenOrderDoesNotExist() throws Exception {
+        // Arrange: Create order ID and update request
+        UUID orderId = UUID.randomUUID();
+        UpdateOrderRequestDTO updateRequest = UpdateOrderRequestDTO.builder()
+                .status(OrderStatus.CONFIRMED)
+                .build();
+
+        // Arrange: Mock service to return empty Optional
+        when(orderService.updateOrder(eq(orderId), any(UpdateOrderRequestDTO.class)))
+                .thenReturn(Optional.empty());
+
+        // Act & Assert: PUT request and verify 404 Not Found response
+        mockMvc.perform(put("/api/orders/{id}", orderId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateRequest)))
+                .andExpect(status().isNotFound());
     }
 }
