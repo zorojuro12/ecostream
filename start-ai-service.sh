@@ -84,4 +84,4 @@ echo -e "${GREEN}Dependencies installed successfully!${NC}"
 # Start the service
 echo -e "${GREEN}Starting AI Forecasting Service on port 5000...${NC}"
 echo -e "${YELLOW}Press Ctrl+C to stop the service${NC}"
-python main.py
+uvicorn app.main:app --host 0.0.0.0 --port 5000 --reload
