@@ -24,8 +24,8 @@
 - [x] Initialize FastAPI service and package structure (/app).
 - [x] Establish environment config (.env) and dependency management.
 - [x] Implement Location schema with strict Java parity ([-90,90], [-180,180]).
-- [ ] Implement DynamoDB Telemetry Reader service. (Next)
-- [ ] Develop ETA calculation logic (Distance/Time).
+- [x] Implement DynamoDB Telemetry Reader service.
+- [ ] Develop ETA calculation logic (Distance/Time). (Next)
 - [ ] Integrate Scikit-Learn model for delay prediction.
 - [ ] Connect Java Order Service to Python AI Service.
 
