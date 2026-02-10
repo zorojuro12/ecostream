@@ -61,4 +61,4 @@ Write-Host "Dependencies installed successfully!" -ForegroundColor Green
 # Start the service
 Write-Host "Starting AI Forecasting Service on port 5000..." -ForegroundColor Green
 Write-Host "Press Ctrl+C to stop the service" -ForegroundColor Yellow
-python main.py
+uvicorn app.main:app --host 0.0.0.0 --port 5000 --reload
