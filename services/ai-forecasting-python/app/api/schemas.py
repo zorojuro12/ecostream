@@ -26,3 +26,31 @@ class Location(BaseModel):
         le=180.0,
         description="Longitude coordinate. Must be between -180 and 180 degrees (inclusive)."
     )
+
+
+class ForecastRequest(BaseModel):
+    """
+    Request body for forecasting endpoint.
+    Contains destination coordinates.
+    """
+    destination_latitude: float = Field(
+        ...,
+        ge=-90.0,
+        le=90.0,
+        description="Destination latitude. Must be between -90 and 90 degrees (inclusive)."
+    )
+    destination_longitude: float = Field(
+        ...,
+        ge=-180.0,
+        le=180.0,
+        description="Destination longitude. Must be between -180 and 180 degrees (inclusive)."
+    )
+
+
+class ForecastResponse(BaseModel):
+    """
+    Response from forecasting endpoint.
+    Contains distance and estimated arrival time.
+    """
+    distance_km: float = Field(..., description="Distance to destination in kilometers")
+    estimated_arrival_minutes: float = Field(..., description="Estimated arrival time in minutes")
