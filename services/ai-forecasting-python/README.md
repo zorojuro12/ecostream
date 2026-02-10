@@ -56,18 +56,23 @@ The AI Forecasting Service provides delay prediction and route analysis capabili
 ### Infrastructure
 - ✅ FastAPI application skeleton initialized
 - ✅ Health check endpoint (`/health`) implemented
-- ✅ Dependencies configured (FastAPI, Uvicorn, Pydantic, Ruff)
+- ✅ Dependencies configured (FastAPI, Uvicorn, Pydantic, Ruff, python-dotenv)
 - ✅ Project structure created (`/app/engine`, `/app/api`, `/app/services`, `/app/schemas`)
 - ✅ Main application moved to `/app/main.py` with `.env` loading
 - ✅ Port configuration via environment variable (default: 5000)
 - ✅ PowerShell startup script (`start-ai-service.ps1`) for Windows convenience
 
+### Data Models & Validation
+- ✅ Location schema (`app/api/schemas.py`) with Java parity validation:
+  - Latitude: -90.0 to 90.0 (inclusive)
+  - Longitude: -180.0 to 180.0 (inclusive)
+
 ### Pending Implementation
+- ⏳ DynamoDB Telemetry Reader service (boto3 integration)
+- ⏳ ETA calculation logic (Distance/Time)
 - ⏳ Scikit-Learn delay prediction model setup
 - ⏳ `/predict/delay` endpoint implementation
-- ⏳ Pydantic request/response schemas for delay prediction
 - ⏳ Amazon Bedrock integration for route analysis
-- ⏳ Populate project structure directories with actual implementation
 - ⏳ Unit tests using Pytest
 
 ## Verified Commands
