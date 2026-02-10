@@ -10,8 +10,7 @@ The AI Forecasting Service provides delay prediction and route analysis capabili
 - **GenAI Integration:** Amazon Bedrock (Logistics Assistant)
 - **Validation:** Pydantic 2.10.0
 - **Linting/Formatting:** Ruff 0.8.0
-- **Testing:** Pytest 9.0.2
-- **AWS SDK:** boto3 1.34.0 (DynamoDB)
+- **Testing:** Pytest
 
 ## Local Setup
 
@@ -37,12 +36,12 @@ The AI Forecasting Service provides delay prediction and route analysis capabili
 
    **Option B - Manual start:**
    ```bash
-   python -m app.main
+   python main.py
    ```
 
    **Option C - Using uvicorn directly:**
    ```bash
-   uvicorn app.main:app --host 0.0.0.0 --port 5000 --reload
+   uvicorn main:app --host 0.0.0.0 --port 5000
    ```
 
    The service will start on port **5000** (default, configurable via `PORT` environment variable).
@@ -57,190 +56,28 @@ The AI Forecasting Service provides delay prediction and route analysis capabili
 ### Infrastructure
 - ✅ FastAPI application skeleton initialized
 - ✅ Health check endpoint (`/health`) implemented
-- ✅ Dependencies configured (FastAPI, Uvicorn, Pydantic, Ruff, python-dotenv)
-- ✅ Project structure created (`/app/engine`, `/app/api`, `/app/services`, `/app/schemas`)
-- ✅ Main application moved to `/app/main.py` with `.env` loading
+- ✅ Dependencies configured (FastAPI, Uvicorn, Pydantic, Ruff)
+- ✅ Project structure created (`/app/engine`, `/app/api`, `/app/schemas`)
 - ✅ Port configuration via environment variable (default: 5000)
 - ✅ PowerShell startup script (`start-ai-service.ps1`) for Windows convenience
 
-### Data Models & Validation
-- ✅ Location schema (`app/api/schemas.py`) with Java parity validation:
-  - Latitude: -90.0 to 90.0 (inclusive)
-  - Longitude: -180.0 to 180.0 (inclusive)
-
-### Engine & Core Logic
-- ✅ Haversine distance calculation (`app/engine/forecaster.py`)
-  - Pure function with no I/O or database calls
-  - Calculates great-circle distance between two coordinates
-  - Returns distance in kilometers
-  - Unit tested with SFU campuses (13.72 km accuracy verified)
-
-### Services & Integrations
-- ✅ DynamoDB Telemetry Reader service (`app/services/telemetry_service.py`)
-  - boto3 client configured for local DynamoDB (endpoint: http://localhost:9000)
-  - `get_latest_telemetry(order_id)` retrieves most recent coordinates
-  - Optimized Query with `ScanIndexForward=False` and `Limit=1`
-  - Maps DynamoDB response to Location Pydantic model
-- ✅ Forecasting Service (`app/services/forecasting_service.py`)
-  - `calculate_eta()` orchestrates telemetry retrieval and distance calculation
-  - Uses Haversine formula for distance calculation
-  - ETA calculation based on constant speed (40 km/h placeholder for ML model)
-  - Returns distance in km and estimated arrival time in minutes
-
-### API Endpoints
-- ✅ Health check: `GET /health`
-- ✅ Telemetry test: `GET /api/test/telemetry/{order_id}`
-- ✅ Forecasting: `POST /api/forecast/{order_id}`
-
-### Testing
-- ✅ Unit tests for Haversine distance calculation (`tests/unit/test_forecaster.py`)
-  - SFU campuses test case (Burnaby to Vancouver: ~13.72 km)
-  - Verified accuracy with relative tolerance of 0.01
-
 ### Pending Implementation
 - ⏳ Scikit-Learn delay prediction model setup
-- ⏳ ML-based speed prediction (replace constant 40 km/h)
+- ⏳ `/predict/delay` endpoint implementation
+- ⏳ Pydantic request/response schemas for delay prediction
 - ⏳ Amazon Bedrock integration for route analysis
-- ⏳ Additional unit tests for services and API endpoints
-
-## Verified Commands
-
-### Tool Verification
-```bash
-# Verify Python 3.9+ is installed
-python --version
-# Expected: Python 3.9.x or higher
-
-# Verify pip is available
-pip --version
-# Expected: pip version information
-```
-
-### Dependency Management
-```bash
-# Navigate to service directory
-cd services/ai-forecasting-python
-
-# Install dependencies (global)
-pip install -r requirements.txt
-
-# Or use virtual environment (recommended)
-python -m venv .venv
-.venv\Scripts\activate  # Windows
-source .venv/bin/activate  # Linux/Mac
-pip install -r requirements.txt
-
-# Verify key dependencies
-pip list | findstr "fastapi uvicorn pydantic scikit-learn boto3"
-# Expected: All packages listed with versions
-```
-
-### Run Service
-```bash
-# Option A: PowerShell script (Windows - recommended)
-.\start-ai-service.ps1
-# Automatically: checks Python, creates venv, installs deps, starts service
-
-# Option B: Manual start
-python -m app.main
-# Expected: Application startup on port 5000
-
-# Option C: Uvicorn directly
-uvicorn app.main:app --host 0.0.0.0 --port 5000 --reload
-# Expected: Uvicorn running on http://0.0.0.0:5000
-```
-
-### Health Check
-```bash
-# Test health endpoint (PowerShell)
-curl.exe http://localhost:5000/health
-# Expected: {"status":"healthy","service":"ai-forecasting"}
-
-# Alternative (PowerShell)
-Invoke-RestMethod -Uri http://localhost:5000/health
-# Expected: status=healthy, service=ai-forecasting
-```
-
-### Development Tools
-```bash
-# Run Ruff linter
-ruff check .
-
-# Format code with Ruff
-ruff format .
-
-# Run unit tests
-pytest tests/unit/
-
-# Run all tests with verbose output
-pytest -v
-
-# Run specific test file
-pytest tests/unit/test_forecaster.py -v
-```
+- ⏳ Populate project structure directories with actual implementation
+- ⏳ Unit tests using Pytest
 
 ## API Contract
 
-### Endpoints (Implemented)
-
-#### Health Check
-- `GET /health`: Health check endpoint
-  - **Response:** `{ "status": "healthy", "service": "ai-forecasting" }`
-
-#### Telemetry Test
-- `GET /api/test/telemetry/{order_id}`: Retrieve latest telemetry data for an order
-  - **Path Parameter:** `order_id` (string) - The order ID to query
-  - **Response:** `Location` object with `latitude` and `longitude`, or `null` if not found
-  - **Example:** 
-    ```bash
-    GET /api/test/telemetry/123e4567-e89b-12d3-a456-426614174000
-    ```
-
-#### Forecasting
-- `POST /api/forecast/{order_id}`: Calculate Estimated Time of Arrival (ETA) for an order
-  - **Path Parameter:** `order_id` (string) - The order ID to calculate ETA for
-  - **Request Body:**
-    ```json
-    {
-      "destination_latitude": 49.2820,
-      "destination_longitude": -123.1085
-    }
-    ```
-  - **Response:**
-    ```json
-    {
-      "distance_km": 13.83,
-      "estimated_arrival_minutes": 20.7
-    }
-    ```
-  - **Error Responses:**
-    - `404 Not Found`: If no telemetry data is found for the order
-  - **Example:**
-    ```bash
-    POST /api/forecast/TEST-123
-    Content-Type: application/json
-    
-    {
-      "destination_latitude": 49.2820,
-      "destination_longitude": -123.1085
-    }
-    ```
-
 ### Endpoints (Planned)
-- `POST /predict/delay`: ML-based delay prediction (Scikit-Learn integration)
-  - **Request Body:** Order details (destination, priority, historical data, etc.)
-  - **Response:** `{ "estimatedDelayMinutes": int, "confidenceScore": float }`
+- `POST http://localhost:5000/predict/delay`: Accepts order details, returns estimated delay in minutes
+  - **Request Body:** Order details (destination, priority, etc.)
+  - **Response:** `{ "estimatedDelayMinutes": int }`
 
 ## Code Organization
-Following the FastAPI standards, the service is organized as:
-- `/app/engine`: Pure ML/Forecasting logic (no I/O or database calls)
-  - `forecaster.py`: Haversine distance calculation
-- `/app/api`: API route handlers and endpoints
-  - `forecasting_routes.py`: ETA calculation endpoint
-  - `test_routes.py`: Test endpoints for telemetry retrieval
-  - `schemas.py`: Pydantic models for request/response validation
-- `/app/services`: Business logic and DynamoDB interactions
-  - `telemetry_service.py`: DynamoDB telemetry reader
-  - `forecasting_service.py`: ETA calculation orchestration
-- `/tests/unit`: Unit tests matching the `/app` structure
-  - `test_forecaster.py`: Haversine distance calculation tests
+Following the FastAPI standards, the service will be organized as:
+- `/engine`: Machine learning models and prediction logic
+- `/api`: API route handlers and endpoints
+- `/schemas`: Pydantic models for request/response validation
