@@ -10,7 +10,8 @@ The AI Forecasting Service provides delay prediction and route analysis capabili
 - **GenAI Integration:** Amazon Bedrock (Logistics Assistant)
 - **Validation:** Pydantic 2.10.0
 - **Linting/Formatting:** Ruff 0.8.0
-- **Testing:** Pytest
+- **Testing:** Pytest 9.0.2
+- **AWS SDK:** boto3 1.34.0 (DynamoDB)
 
 ## Local Setup
 
@@ -67,23 +68,40 @@ The AI Forecasting Service provides delay prediction and route analysis capabili
   - Latitude: -90.0 to 90.0 (inclusive)
   - Longitude: -180.0 to 180.0 (inclusive)
 
+### Engine & Core Logic
+- ✅ Haversine distance calculation (`app/engine/forecaster.py`)
+  - Pure function with no I/O or database calls
+  - Calculates great-circle distance between two coordinates
+  - Returns distance in kilometers
+  - Unit tested with SFU campuses (13.72 km accuracy verified)
+
 ### Services & Integrations
 - ✅ DynamoDB Telemetry Reader service (`app/services/telemetry_service.py`)
   - boto3 client configured for local DynamoDB (endpoint: http://localhost:9000)
   - `get_latest_telemetry(order_id)` retrieves most recent coordinates
   - Optimized Query with `ScanIndexForward=False` and `Limit=1`
   - Maps DynamoDB response to Location Pydantic model
+- ✅ Forecasting Service (`app/services/forecasting_service.py`)
+  - `calculate_eta()` orchestrates telemetry retrieval and distance calculation
+  - Uses Haversine formula for distance calculation
+  - ETA calculation based on constant speed (40 km/h placeholder for ML model)
+  - Returns distance in km and estimated arrival time in minutes
 
 ### API Endpoints
 - ✅ Health check: `GET /health`
 - ✅ Telemetry test: `GET /api/test/telemetry/{order_id}`
+- ✅ Forecasting: `POST /api/forecast/{order_id}`
+
+### Testing
+- ✅ Unit tests for Haversine distance calculation (`tests/unit/test_forecaster.py`)
+  - SFU campuses test case (Burnaby to Vancouver: ~13.72 km)
+  - Verified accuracy with relative tolerance of 0.01
 
 ### Pending Implementation
-- ⏳ ETA calculation logic (Distance/Time)
 - ⏳ Scikit-Learn delay prediction model setup
-- ⏳ `/predict/delay` endpoint implementation
+- ⏳ ML-based speed prediction (replace constant 40 km/h)
 - ⏳ Amazon Bedrock integration for route analysis
-- ⏳ Unit tests using Pytest
+- ⏳ Additional unit tests for services and API endpoints
 
 ## Verified Commands
 
@@ -151,28 +169,78 @@ ruff check .
 # Format code with Ruff
 ruff format .
 
-# Run tests (when implemented)
-pytest
+# Run unit tests
+pytest tests/unit/
+
+# Run all tests with verbose output
+pytest -v
+
+# Run specific test file
+pytest tests/unit/test_forecaster.py -v
 ```
 
 ## API Contract
 
 ### Endpoints (Implemented)
+
+#### Health Check
 - `GET /health`: Health check endpoint
   - **Response:** `{ "status": "healthy", "service": "ai-forecasting" }`
 
+#### Telemetry Test
 - `GET /api/test/telemetry/{order_id}`: Retrieve latest telemetry data for an order
   - **Path Parameter:** `order_id` (string) - The order ID to query
   - **Response:** `Location` object with `latitude` and `longitude`, or `null` if not found
-  - **Example:** `GET /api/test/telemetry/123e4567-e89b-12d3-a456-426614174000`
+  - **Example:** 
+    ```bash
+    GET /api/test/telemetry/123e4567-e89b-12d3-a456-426614174000
+    ```
+
+#### Forecasting
+- `POST /api/forecast/{order_id}`: Calculate Estimated Time of Arrival (ETA) for an order
+  - **Path Parameter:** `order_id` (string) - The order ID to calculate ETA for
+  - **Request Body:**
+    ```json
+    {
+      "destination_latitude": 49.2820,
+      "destination_longitude": -123.1085
+    }
+    ```
+  - **Response:**
+    ```json
+    {
+      "distance_km": 13.83,
+      "estimated_arrival_minutes": 20.7
+    }
+    ```
+  - **Error Responses:**
+    - `404 Not Found`: If no telemetry data is found for the order
+  - **Example:**
+    ```bash
+    POST /api/forecast/TEST-123
+    Content-Type: application/json
+    
+    {
+      "destination_latitude": 49.2820,
+      "destination_longitude": -123.1085
+    }
+    ```
 
 ### Endpoints (Planned)
-- `POST /predict/delay`: Accepts order details, returns estimated delay in minutes
-  - **Request Body:** Order details (destination, priority, etc.)
-  - **Response:** `{ "estimatedDelayMinutes": int }`
+- `POST /predict/delay`: ML-based delay prediction (Scikit-Learn integration)
+  - **Request Body:** Order details (destination, priority, historical data, etc.)
+  - **Response:** `{ "estimatedDelayMinutes": int, "confidenceScore": float }`
 
 ## Code Organization
-Following the FastAPI standards, the service will be organized as:
-- `/engine`: Machine learning models and prediction logic
-- `/api`: API route handlers and endpoints
-- `/schemas`: Pydantic models for request/response validation
+Following the FastAPI standards, the service is organized as:
+- `/app/engine`: Pure ML/Forecasting logic (no I/O or database calls)
+  - `forecaster.py`: Haversine distance calculation
+- `/app/api`: API route handlers and endpoints
+  - `forecasting_routes.py`: ETA calculation endpoint
+  - `test_routes.py`: Test endpoints for telemetry retrieval
+  - `schemas.py`: Pydantic models for request/response validation
+- `/app/services`: Business logic and DynamoDB interactions
+  - `telemetry_service.py`: DynamoDB telemetry reader
+  - `forecasting_service.py`: ETA calculation orchestration
+- `/tests/unit`: Unit tests matching the `/app` structure
+  - `test_forecaster.py`: Haversine distance calculation tests
