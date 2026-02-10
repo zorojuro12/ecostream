@@ -67,8 +67,18 @@ The AI Forecasting Service provides delay prediction and route analysis capabili
   - Latitude: -90.0 to 90.0 (inclusive)
   - Longitude: -180.0 to 180.0 (inclusive)
 
+### Services & Integrations
+- ✅ DynamoDB Telemetry Reader service (`app/services/telemetry_service.py`)
+  - boto3 client configured for local DynamoDB (endpoint: http://localhost:9000)
+  - `get_latest_telemetry(order_id)` retrieves most recent coordinates
+  - Optimized Query with `ScanIndexForward=False` and `Limit=1`
+  - Maps DynamoDB response to Location Pydantic model
+
+### API Endpoints
+- ✅ Health check: `GET /health`
+- ✅ Telemetry test: `GET /api/test/telemetry/{order_id}`
+
 ### Pending Implementation
-- ⏳ DynamoDB Telemetry Reader service (boto3 integration)
 - ⏳ ETA calculation logic (Distance/Time)
 - ⏳ Scikit-Learn delay prediction model setup
 - ⏳ `/predict/delay` endpoint implementation
@@ -147,8 +157,17 @@ pytest
 
 ## API Contract
 
+### Endpoints (Implemented)
+- `GET /health`: Health check endpoint
+  - **Response:** `{ "status": "healthy", "service": "ai-forecasting" }`
+
+- `GET /api/test/telemetry/{order_id}`: Retrieve latest telemetry data for an order
+  - **Path Parameter:** `order_id` (string) - The order ID to query
+  - **Response:** `Location` object with `latitude` and `longitude`, or `null` if not found
+  - **Example:** `GET /api/test/telemetry/123e4567-e89b-12d3-a456-426614174000`
+
 ### Endpoints (Planned)
-- `POST http://localhost:5000/predict/delay`: Accepts order details, returns estimated delay in minutes
+- `POST /predict/delay`: Accepts order details, returns estimated delay in minutes
   - **Request Body:** Order details (destination, priority, etc.)
   - **Response:** `{ "estimatedDelayMinutes": int }`
 
