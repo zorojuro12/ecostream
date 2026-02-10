@@ -36,12 +36,12 @@ The AI Forecasting Service provides delay prediction and route analysis capabili
 
    **Option B - Manual start:**
    ```bash
-   python main.py
+   python -m app.main
    ```
 
    **Option C - Using uvicorn directly:**
    ```bash
-   uvicorn main:app --host 0.0.0.0 --port 5000
+   uvicorn app.main:app --host 0.0.0.0 --port 5000 --reload
    ```
 
    The service will start on port **5000** (default, configurable via `PORT` environment variable).
@@ -57,7 +57,8 @@ The AI Forecasting Service provides delay prediction and route analysis capabili
 - ✅ FastAPI application skeleton initialized
 - ✅ Health check endpoint (`/health`) implemented
 - ✅ Dependencies configured (FastAPI, Uvicorn, Pydantic, Ruff)
-- ✅ Project structure created (`/app/engine`, `/app/api`, `/app/schemas`)
+- ✅ Project structure created (`/app/engine`, `/app/api`, `/app/services`, `/app/schemas`)
+- ✅ Main application moved to `/app/main.py` with `.env` loading
 - ✅ Port configuration via environment variable (default: 5000)
 - ✅ PowerShell startup script (`start-ai-service.ps1`) for Windows convenience
 
@@ -108,11 +109,11 @@ pip list | findstr "fastapi uvicorn pydantic scikit-learn boto3"
 # Automatically: checks Python, creates venv, installs deps, starts service
 
 # Option B: Manual start
-python main.py
+python -m app.main
 # Expected: Application startup on port 5000
 
 # Option C: Uvicorn directly
-uvicorn main:app --host 0.0.0.0 --port 5000
+uvicorn app.main:app --host 0.0.0.0 --port 5000 --reload
 # Expected: Uvicorn running on http://0.0.0.0:5000
 ```
 
