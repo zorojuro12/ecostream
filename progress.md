@@ -25,8 +25,8 @@
 - [x] Establish environment config (.env) and dependency management.
 - [x] Implement Location schema with strict Java parity ([-90,90], [-180,180]).
 - [x] Implement DynamoDB Telemetry Reader service.
-- [ ] Develop ETA calculation logic (Distance/Time). (Next)
-- [ ] Integrate Scikit-Learn model for delay prediction.
+- [x] Develop ETA calculation logic (Distance/Time).
+- [ ] Integrate Scikit-Learn model for delay prediction. (Next)
 - [ ] Connect Java Order Service to Python AI Service.
 
 ## Phase 4: AWS & Full-Stack Dashboard
