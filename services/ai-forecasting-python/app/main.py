@@ -7,7 +7,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from fastapi import FastAPI
 
-from app.api import test_routes
+from app.api import test_routes, forecasting_routes
 
 # Load environment variables from .env file
 env_path = Path(__file__).parent.parent / ".env"
@@ -19,8 +19,9 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Mount test routes
+# Mount API routes
 app.include_router(test_routes.router)
+app.include_router(forecasting_routes.router)
 
 
 @app.get("/health")
