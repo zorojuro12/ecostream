@@ -2,9 +2,11 @@ import type { Order } from '../api/types'
 
 interface OrderListProps {
   orders: Order[]
+  /** When true, show a live-tracking pulse next to Distance when order has ETA */
+  liveTracking?: boolean
 }
 
-export function OrderList({ orders }: OrderListProps) {
+export function OrderList({ orders, liveTracking = false }: OrderListProps) {
   if (orders.length === 0) {
     return (
       <p className="text-slate-400 text-sm py-8">No orders yet.</p>
@@ -18,7 +20,17 @@ export function OrderList({ orders }: OrderListProps) {
           <tr className="border-b border-slate-700 bg-slate-800 text-slate-300 text-xs uppercase tracking-wider">
             <th className="px-4 py-3 font-medium">Order ID</th>
             <th className="px-4 py-3 font-medium">Status</th>
-            <th className="px-4 py-3 font-medium">Distance (km)</th>
+            <th className="px-4 py-3 font-medium">
+              <span className="inline-flex items-center gap-1.5">
+                Distance (km)
+                {liveTracking && (
+                  <span className="relative flex h-2 w-2" title="Live tracking">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-red-600" />
+                  </span>
+                )}
+              </span>
+            </th>
             <th className="px-4 py-3 font-medium">ETA (min)</th>
           </tr>
         </thead>
