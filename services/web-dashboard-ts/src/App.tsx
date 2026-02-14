@@ -91,7 +91,10 @@ function App() {
           </div>
         )}
         {(fetchState === 'success' || orders.length > 0) && (
-          <OrderList orders={orders} />
+          <OrderList
+            orders={orders}
+            liveTracking={autoRefresh && orders.some((o) => o.estimatedArrivalMinutes != null)}
+          />
         )}
       </div>
     </main>
