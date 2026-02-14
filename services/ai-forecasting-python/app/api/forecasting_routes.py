@@ -14,25 +14,24 @@ router = APIRouter(prefix="/api/forecast", tags=["forecasting"])
 async def forecast_eta(order_id: str, request: ForecastRequest):
     """
     Calculate Estimated Time of Arrival (ETA) for an order.
-    
-    Retrieves the latest telemetry data for the order and calculates:
-    - Distance to destination (using Haversine formula)
-    - Estimated arrival time (based on constant speed, placeholder for ML model)
-    
+
+    Uses ML-predicted speed from request priority (Express = faster, Standard = slower).
+
     Args:
         order_id: The order ID to calculate ETA for
-        request: ForecastRequest containing destination coordinates
-        
+        request: ForecastRequest with destination coordinates and optional priority
+
     Returns:
         ForecastResponse with distance_km and estimated_arrival_minutes
-        
+
     Raises:
         HTTPException 404: If no telemetry data is found for the order
     """
     result = calculate_eta(
         order_id=order_id,
         destination_latitude=request.destination_latitude,
-        destination_longitude=request.destination_longitude
+        destination_longitude=request.destination_longitude,
+        priority=request.priority,
     )
     
     if result is None:

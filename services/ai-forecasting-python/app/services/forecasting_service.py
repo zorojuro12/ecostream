@@ -1,66 +1,64 @@
 """
 Forecasting Service
-Orchestrates telemetry retrieval and ETA calculation.
+Orchestrates telemetry retrieval and ETA calculation using ML-predicted speed.
 """
 import logging
 from typing import Optional
 
-from app.api.schemas import Location
-from app.services.telemetry_service import get_latest_telemetry
 from app.engine.forecaster import calculate_haversine_distance
+from app.engine.model_loader import predict_speed
+from app.services.telemetry_service import get_latest_telemetry
 
 logger = logging.getLogger(__name__)
-
-# Default constant speed for ETA calculation (km/h)
-# This is a placeholder until ML model is integrated
-DEFAULT_SPEED_KMH = 40.0
 
 
 def calculate_eta(
     order_id: str,
     destination_latitude: float,
-    destination_longitude: float
+    destination_longitude: float,
+    priority: str = "Standard",
 ) -> Optional[dict]:
     """
     Calculate Estimated Time of Arrival (ETA) for an order.
-    
-    Retrieves the latest telemetry data for the order, calculates the distance
-    to the destination, and estimates arrival time based on a constant speed.
-    
+
+    Uses ML-predicted speed from priority (Express = faster, Standard = slower).
+
     Args:
         order_id: The order ID to calculate ETA for
         destination_latitude: Destination latitude coordinate
         destination_longitude: Destination longitude coordinate
-        
+        priority: Order priority for speed prediction (Express or Standard)
+
     Returns:
         Dictionary with 'distance_km' and 'estimated_arrival_minutes', or None if telemetry not found
     """
-    # Retrieve latest telemetry data
     current_location = get_latest_telemetry(order_id)
-    
+
     if current_location is None:
-        logger.warning(f"No telemetry data found for orderId: {order_id}")
+        logger.warning("No telemetry data found for orderId: %s", order_id)
         return None
-    
-    # Calculate distance using Haversine formula
+
     distance_km = calculate_haversine_distance(
         lat1=current_location.latitude,
         lon1=current_location.longitude,
         lat2=destination_latitude,
-        lon2=destination_longitude
+        lon2=destination_longitude,
     )
-    
-    # Calculate ETA based on constant speed (placeholder for ML model)
-    # Time = Distance / Speed
-    estimated_arrival_hours = distance_km / DEFAULT_SPEED_KMH
+
+    speed_kmh = predict_speed(priority)
+    estimated_arrival_hours = distance_km / speed_kmh
     estimated_arrival_minutes = estimated_arrival_hours * 60
-    
+
     logger.info(
-        f"ETA calculated for orderId {order_id}: "
-        f"{distance_km:.2f} km, {estimated_arrival_minutes:.1f} minutes"
+        "ETA calculated for orderId %s: %s km, %s minutes (priority=%s, speed=%s km/h)",
+        order_id,
+        f"{distance_km:.2f}",
+        f"{estimated_arrival_minutes:.1f}",
+        priority,
+        speed_kmh,
     )
-    
+
     return {
         "distance_km": round(distance_km, 2),
-        "estimated_arrival_minutes": round(estimated_arrival_minutes, 1)
+        "estimated_arrival_minutes": round(estimated_arrival_minutes, 1),
     }

@@ -31,7 +31,7 @@ class Location(BaseModel):
 class ForecastRequest(BaseModel):
     """
     Request body for forecasting endpoint.
-    Contains destination coordinates.
+    Contains destination coordinates and optional priority for ML speed prediction.
     """
     destination_latitude: float = Field(
         ...,
@@ -44,6 +44,10 @@ class ForecastRequest(BaseModel):
         ge=-180.0,
         le=180.0,
         description="Destination longitude. Must be between -180 and 180 degrees (inclusive)."
+    )
+    priority: str = Field(
+        default="Standard",
+        description="Order priority for speed prediction: Express (faster) or Standard (slower)."
     )
 
 

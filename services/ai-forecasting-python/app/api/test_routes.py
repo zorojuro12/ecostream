@@ -1,7 +1,7 @@
 """
 Test routes for verifying DynamoDB connectivity and telemetry retrieval.
 """
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from typing import Optional
 
 from app.api.schemas import Location
