@@ -4,13 +4,26 @@ import { OrderList } from './components/OrderList'
 import type { Order } from './api/types'
 import './App.css'
 
+type FetchState = 'idle' | 'loading' | 'success' | 'error'
+
 function App() {
   const [orders, setOrders] = useState<Order[]>([])
+  const [fetchState, setFetchState] = useState<FetchState>('idle')
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   const loadOrders = useCallback(() => {
+    setFetchState('loading')
+    setErrorMessage(null)
     fetchOrders()
-      .then(setOrders)
-      .catch(() => setOrders([]))
+      .then((data) => {
+        setOrders(data)
+        setFetchState('success')
+      })
+      .catch((err) => {
+        setOrders([])
+        setFetchState('error')
+        setErrorMessage(err instanceof Error ? err.message : 'Failed to load orders')
+      })
   }, [])
 
   useEffect(() => {
@@ -27,12 +40,26 @@ function App() {
           <button
             type="button"
             onClick={loadOrders}
-            className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium transition-colors"
+            disabled={fetchState === 'loading'}
+            className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium transition-colors"
           >
-            Refresh
+            {fetchState === 'loading' ? 'Loading…' : 'Refresh'}
           </button>
         </div>
-        <OrderList orders={orders} />
+        {fetchState === 'loading' && orders.length === 0 && (
+          <p className="text-slate-400 py-8" role="status">Loading orders…</p>
+        )}
+        {fetchState === 'error' && (
+          <div
+            className="mb-4 p-4 rounded-lg bg-red-900/30 border border-red-700 text-red-200 text-sm"
+            role="alert"
+          >
+            {errorMessage}
+          </div>
+        )}
+        {(fetchState === 'success' || orders.length > 0) && (
+          <OrderList orders={orders} />
+        )}
       </div>
     </main>
   )
