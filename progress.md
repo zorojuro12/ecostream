@@ -34,5 +34,5 @@
 
 ## Phase 4: AWS & Full-Stack Dashboard
 - [ ] Integrate Amazon Bedrock for "Logistics Assistant."
-- [ ] Build TypeScript/React Dashboard.
+- [x] Initialize TypeScript/React Dashboard (Vite, Vitest, Tailwind, Order List with ETA, Refresh, loading/error states).
 - [ ] Setup GitHub Actions (CI/CD) and AWS Lambda migration.
