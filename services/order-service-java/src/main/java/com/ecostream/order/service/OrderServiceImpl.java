@@ -1,5 +1,7 @@
 package com.ecostream.order.service;
 
+import com.ecostream.order.client.ForecastResponseDTO;
+import com.ecostream.order.client.ForecastingClient;
 import com.ecostream.order.dto.LocationDTO;
 import com.ecostream.order.dto.OrderRequestDTO;
 import com.ecostream.order.dto.OrderResponseDTO;
@@ -28,6 +30,7 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
     private final TelemetryRepository telemetryRepository;
+    private final ForecastingClient forecastingClient;
 
     /**
      * Creates a new order from the provided request DTO.
@@ -59,17 +62,35 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public Optional<OrderResponseDTO> getOrderById(UUID id) {
         log.debug("Retrieving order with ID: {}", id);
-        
+
         Optional<Order> orderOptional = orderRepository.findById(id);
-        
+
         if (orderOptional.isEmpty()) {
             log.debug("Order not found with ID: {}", id);
             return Optional.empty();
         }
-        
+
         Order order = orderOptional.get();
+        OrderResponseDTO dto = mapToResponseDTO(order);
+
+        try {
+            String priorityForAi = order.getPriority() != null && order.getPriority() >= 5 ? "Express" : "Standard";
+            ForecastResponseDTO forecast = forecastingClient.getForecast(
+                    id,
+                    order.getDestinationLatitude(),
+                    order.getDestinationLongitude(),
+                    priorityForAi);
+            if (forecast != null) {
+                dto.setDistanceKm(forecast.distanceKm());
+                dto.setEstimatedArrivalMinutes(forecast.estimatedArrivalMinutes());
+            }
+        } catch (Exception e) {
+            log.warn("AI forecasting unavailable for order {}: {}", id, e.getMessage());
+            // Leave ETA and distanceKm null so core order data is still returned
+        }
+
         log.info("Order retrieved successfully with ID: {}", id);
-        return Optional.of(mapToResponseDTO(order));
+        return Optional.of(dto);
     }
 
     @Override
@@ -175,6 +196,8 @@ public class OrderServiceImpl implements OrderService {
                 .status(order.getStatus())
                 .destination(locationDTO)
                 .priority(order.getPriority())
+                .distanceKm(null)
+                .estimatedArrivalMinutes(null)
                 .build();
     }
 }
