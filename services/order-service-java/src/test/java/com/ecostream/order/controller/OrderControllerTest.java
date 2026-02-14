@@ -2,6 +2,7 @@ package com.ecostream.order.controller;
 
 import com.ecostream.order.dto.LocationDTO;
 import com.ecostream.order.dto.OrderRequestDTO;
+import com.ecostream.order.dto.TelemetryRequestDTO;
 import com.ecostream.order.dto.OrderResponseDTO;
 import com.ecostream.order.entity.OrderStatus;
 import com.ecostream.order.service.OrderService;
@@ -265,20 +266,20 @@ class OrderControllerTest {
 
     @Test
     void ingestTelemetry_ShouldReturn202Accepted() throws Exception {
-        // Arrange: Create order ID and location DTO
+        // Arrange: Create order ID and telemetry request DTO
         UUID orderId = UUID.randomUUID();
-        LocationDTO locationDTO = LocationDTO.builder()
-                .latitude(37.7749)
-                .longitude(-122.4194)
+        TelemetryRequestDTO telemetryRequest = TelemetryRequestDTO.builder()
+                .currentLatitude(37.7749)
+                .currentLongitude(-122.4194)
                 .build();
 
         // Arrange: Mock service to do nothing (void method)
-        doNothing().when(orderService).ingestTelemetry(eq(orderId), any(LocationDTO.class));
+        doNothing().when(orderService).ingestTelemetry(eq(orderId), any(TelemetryRequestDTO.class));
 
         // Act & Assert: POST request and verify 202 Accepted response
         mockMvc.perform(post("/api/orders/{id}/telemetry", orderId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(locationDTO)))
+                        .content(objectMapper.writeValueAsString(telemetryRequest)))
                 .andExpect(status().isAccepted());
     }
 }
