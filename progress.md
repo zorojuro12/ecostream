@@ -29,8 +29,8 @@
 - [x] **VERIFIED:** Haversine distance engine tested with SFU campuses (13.72 km accuracy).
 - [x] **VERIFIED:** Base forecasting service with constant speed (40 km/h) placeholder.
 - [x] **VERIFIED:** Forecasting API endpoint (`POST /api/forecast/{order_id}`) functional.
-- [ ] Integrate Scikit-Learn model for delay prediction. (Next)
-- [ ] Connect Java Order Service to Python AI Service.
+- [x] Integrate Scikit-Learn model for delay prediction.
+- [x] Connect Java Order Service to Python AI Service.
 
 ## Phase 4: AWS & Full-Stack Dashboard
 - [ ] Integrate Amazon Bedrock for "Logistics Assistant."
