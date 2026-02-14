@@ -38,4 +38,14 @@ public class OrderResponseDTO {
      * Priority level of the order (higher number = higher priority).
      */
     private Integer priority;
+
+    /**
+     * Distance to destination in km from AI forecasting service (null if unavailable).
+     */
+    private Double distanceKm;
+
+    /**
+     * Estimated arrival time in minutes from AI forecasting service (null if unavailable).
+     */
+    private Double estimatedArrivalMinutes;
 }
