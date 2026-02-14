@@ -20,7 +20,10 @@ def get_orders():
 
 def post_telemetry(order_id: str, latitude: float, longitude: float) -> None:
     url = f"{ORDERS_URL}/{order_id}/telemetry"
-    data = json.dumps({"latitude": latitude, "longitude": longitude}).encode()
+    data = json.dumps({
+        "currentLatitude": latitude,
+        "currentLongitude": longitude,
+    }).encode()
     req = urllib.request.Request(
         url,
         data=data,

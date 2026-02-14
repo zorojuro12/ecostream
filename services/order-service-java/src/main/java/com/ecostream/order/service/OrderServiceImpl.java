@@ -5,6 +5,7 @@ import com.ecostream.order.client.ForecastingClient;
 import com.ecostream.order.dto.LocationDTO;
 import com.ecostream.order.dto.OrderRequestDTO;
 import com.ecostream.order.dto.OrderResponseDTO;
+import com.ecostream.order.dto.TelemetryRequestDTO;
 import com.ecostream.order.dto.UpdateOrderRequestDTO;
 import com.ecostream.order.entity.Order;
 import com.ecostream.order.entity.OrderStatus;
@@ -157,7 +158,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public void ingestTelemetry(UUID orderId, LocationDTO location) {
+    public void ingestTelemetry(UUID orderId, TelemetryRequestDTO request) {
         log.debug("Ingesting telemetry for orderId: {}", orderId);
         
         // Get current timestamp in epoch seconds
@@ -167,8 +168,8 @@ public class OrderServiceImpl implements OrderService {
         Telemetry telemetry = Telemetry.builder()
                 .orderId(orderId.toString())
                 .timestamp(timestamp)
-                .currentLatitude(location.getLatitude())
-                .currentLongitude(location.getLongitude())
+                .currentLatitude(request.getCurrentLatitude())
+                .currentLongitude(request.getCurrentLongitude())
                 .build();
         
         // Save to DynamoDB
