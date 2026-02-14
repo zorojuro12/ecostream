@@ -1,3 +1,18 @@
+# EcoStream Dashboard
+
+React + TypeScript + Vite dashboard for EcoStream order and ETA visibility.
+
+## Live tracking verification
+
+With Order Service (8082), AI Service (5000), and DynamoDB Local running:
+
+1. Run `npm run dev` and open http://localhost:5173.
+2. Enable **Auto-refresh (5s)** and ensure at least one order has telemetry and ETA.
+3. Confirm the **blinking red pulse** appears next to "Distance (km)" when live tracking is active.
+4. Run `python scripts/simulate_movement.py` (from repo root); Distance and ETA should update every 5 seconds as the simulator posts telemetry.
+
+---
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
