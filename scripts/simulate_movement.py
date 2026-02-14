@@ -3,6 +3,7 @@ Simulate a truck moving toward an order destination.
 Polls the Order Service for orders, picks one, and every 2 seconds
 POSTs updated telemetry (current position) to mimic movement.
 Run with Order Service on 8082 and DynamoDB Local on 9000.
+Body must match TelemetryRequestDTO: currentLatitude, currentLongitude (camelCase, numbers).
 """
 import json
 import time
@@ -20,17 +21,24 @@ def get_orders():
 
 def post_telemetry(order_id: str, latitude: float, longitude: float) -> None:
     url = f"{ORDERS_URL}/{order_id}/telemetry"
-    data = json.dumps({
-        "currentLatitude": latitude,
-        "currentLongitude": longitude,
-    }).encode()
+    # Field names must match TelemetryRequestDTO exactly (camelCase). No timestamp/orderId in body.
+    payload = {
+        "currentLatitude": float(latitude),
+        "currentLongitude": float(longitude),
+    }
+    data = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(
         url,
         data=data,
         method="POST",
         headers={"Content-Type": "application/json"},
     )
-    urllib.request.urlopen(req)
+    try:
+        urllib.request.urlopen(req)
+    except urllib.error.HTTPError as e:
+        body = e.read().decode("utf-8", errors="replace") if e.fp else ""
+        print(f"  Server error {e.code} {e.reason}: {body}")
+        raise
 
 
 def main():
@@ -66,6 +74,8 @@ def main():
         try:
             post_telemetry(order_id, lat, lon)
             print(f"  [{i+1}/{steps+1}] Telemetry: ({lat:.4f}, {lon:.4f})")
+        except urllib.error.HTTPError:
+            raise  # Already printed body in post_telemetry
         except urllib.error.URLError as e:
             print("  Error posting telemetry:", e)
         time.sleep(2)
