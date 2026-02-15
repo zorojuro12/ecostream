@@ -68,6 +68,7 @@ def chat(client: Any, order_id: str, user_message: str) -> str:
         )
     destination_latitude, destination_longitude, priority = dest_priority
 
+    # Pass Order Service (SSoT) coordinates into Haversine/ETA so dashboard and assistant match.
     eta_result = calculate_eta(
         order_id=order_id,
         destination_latitude=destination_latitude,
