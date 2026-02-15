@@ -65,22 +65,9 @@ class ForecastResponse(BaseModel):
 
 
 class AssistantChatRequest(BaseModel):
-    """Request body for Logistics Assistant chat (POST /api/assistant/chat)."""
-    order_id: str = Field(..., description="Order ID for grounding with telemetry/ETA")
+    """Request body for Logistics Assistant chat (POST /api/assistant/chat). Destination/priority from Order Service (SSoT)."""
+    order_id: str = Field(..., description="Order ID; destination and priority are fetched from Order Service")
     message: str = Field(..., min_length=1, description="User question for the assistant")
-    destination_latitude: float = Field(
-        ...,
-        ge=-90.0,
-        le=90.0,
-        description="Destination latitude for ETA context.",
-    )
-    destination_longitude: float = Field(
-        ...,
-        ge=-180.0,
-        le=180.0,
-        description="Destination longitude for ETA context.",
-    )
-    priority: str = Field(default="Standard", description="Order priority: Express or Standard")
 
 
 class AssistantChatResponse(BaseModel):
