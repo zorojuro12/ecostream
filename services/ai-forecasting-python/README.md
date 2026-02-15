@@ -56,6 +56,17 @@ The AI Forecasting Service provides delay prediction, route analysis, and the **
    curl http://localhost:5050/health
    ```
 
+## Building the Lambda Docker image
+
+The service is Lambda-ready via [Mangum](https://mangum.io/) and a dedicated Dockerfile. To build the image used for AWS Lambda (or Lambda-style container deployment):
+
+```bash
+cd services/ai-forecasting-python
+docker build -f Dockerfile.lambda -t ecostream-ai-lambda .
+```
+
+The image uses the AWS base image `public.ecr.aws/lambda/python:3.10`, installs dependencies from `requirements.txt`, copies the `app` directory, and sets the Lambda handler to `app.main.handler` (the Mangum-wrapped FastAPI app). Push this image to ECR and configure your Lambda function to use it.
+
 ## Current Capabilities
 
 ### Infrastructure
