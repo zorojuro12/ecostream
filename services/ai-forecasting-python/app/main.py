@@ -2,13 +2,26 @@
 EcoStream AI Forecasting Service
 Main entry point for delay prediction and route analysis using GenAI.
 """
+import os
+from pathlib import Path
+from dotenv import load_dotenv
 from fastapi import FastAPI
+
+from app.api import test_routes, forecasting_routes
+
+# Load environment variables from .env file
+env_path = Path(__file__).parent.parent / ".env"
+load_dotenv(dotenv_path=env_path)
 
 app = FastAPI(
     title="EcoStream AI Forecasting Service",
     description="Delay prediction and route analysis using GenAI",
     version="1.0.0"
 )
+
+# Mount API routes
+app.include_router(test_routes.router)
+app.include_router(forecasting_routes.router)
 
 
 @app.get("/health")
@@ -18,7 +31,6 @@ async def health_check():
 
 
 if __name__ == "__main__":
-    import os
     import uvicorn
     port = int(os.getenv("PORT", 5000))
     uvicorn.run(app, host="0.0.0.0", port=port)

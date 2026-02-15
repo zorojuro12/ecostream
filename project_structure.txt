@@ -1,0 +1,64 @@
+﻿apps
+services
+docker-compose.yml
+progress.md
+README.md
+spec.md
+start-ai-service.ps1
+start-ai-service.sh
+  |-- web-dashboard-ts
+  |-- ai-forecasting-python
+  |-- order-service-java
+    |-- app
+    |-- .env
+    |-- README.md
+    |-- requirements.txt
+      |-- api
+      |-- engine
+      |-- services
+      |-- main.py
+      |-- __init__.py
+        |-- schemas.py
+    |-- src
+    |-- pom.xml
+    |-- README.md
+      |-- main
+      |-- test
+        |-- java
+        |-- resources
+          |-- com
+            |-- ecostream
+              |-- order
+                |-- config
+                |-- controller
+                |-- dto
+                |-- entity
+                |-- repository
+                |-- service
+                |-- OrderServiceApplication.java
+                  |-- DynamoDbConfig.java
+                  |-- HealthController.java
+                  |-- OrderController.java
+                  |-- LocationDTO.java
+                  |-- OrderRequestDTO.java
+                  |-- OrderResponseDTO.java
+                  |-- UpdateOrderRequestDTO.java
+                  |-- Order.java
+                  |-- OrderStatus.java
+                  |-- Telemetry.java
+                  |-- OrderRepository.java
+                  |-- TelemetryRepository.java
+                  |-- OrderService.java
+                  |-- OrderServiceImpl.java
+          |-- application.properties
+          |-- application.properties.example
+        |-- java
+          |-- com
+            |-- ecostream
+              |-- order
+                |-- controller
+                |-- entity
+                |-- service
+                  |-- OrderControllerTest.java
+                  |-- OrderTest.java
+                  |-- OrderServiceTest.java
