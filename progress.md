@@ -1,5 +1,11 @@
 # EcoStream Progress Tracker
 
+## Current state (summary)
+- **Order Service (Java, 8082):** CRUD + telemetry ingestion to DynamoDB; calls AI service for ETA on GET order; RestTemplate sends forecast body reliably (buffering fix).
+- **AI Forecasting Service (Python, 5050):** ETA via Haversine + ML speed; `POST /api/forecast/{order_id}` for Java/dashboard; **Logistics Assistant** `POST /api/assistant/chat` — Bedrock (Claude 3.5 Haiku, us-east-1) with live distance/ETA grounding; real replies when AWS credentials in `.env`, fallback otherwise.
+- **Dashboard:** Order list with Distance/ETA and red live-tracking indicator; simulation writes telemetry to DynamoDB; **Logistics Assistant** floating chat (select order → ask context-aware questions; calls POST /api/assistant/chat).
+- **Remaining:** GitHub Actions CI/CD and AWS Lambda migration.
+
 ## Phase 1: Foundation (Scaffolding & Infrastructure)
 - [x] Create project directory structure.
 - [x] Initialize Java (Spring Boot) and Python (FastAPI) skeletons.
@@ -35,6 +41,8 @@
 
 ## Phase 4: AWS & Full-Stack Dashboard
 - [x] Integrate Amazon Bedrock for "Logistics Assistant." (boto3 Converse API, Claude 3.5 Haiku, us-east-1; data grounding with distance/ETA; POST /api/assistant/chat; AccessDenied fallback)
+- [x] **VERIFIED:** Logistics Assistant returns real Bedrock replies when AWS credentials are set in `.env`; `get_bedrock_client()` loads .env (service + repo root) so the running app has the same credentials as `scripts/aws-test.py`.
 - [x] Initialize TypeScript/React Dashboard (Vite, Vitest, Tailwind, Order List with ETA, Refresh, loading/error states).
 - [x] Real-time telemetry visualization (live polling, movement simulator, blinking pulse when ETA + auto-refresh).
+- [x] **End-to-end GenAI:** Dashboard Logistics Assistant chat box (floating bubble → dark chat window; select order, send message to Bedrock-backed assistant; auto-scroll, selection-aware placeholder).
 - [ ] Setup GitHub Actions (CI/CD) and AWS Lambda migration.
