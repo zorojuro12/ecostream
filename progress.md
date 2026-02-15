@@ -1,10 +1,10 @@
 # EcoStream Progress Tracker
 
 ## Current state (summary)
-- **Order Service (Java, 8082):** CRUD + telemetry ingestion to DynamoDB; calls AI service for ETA on GET order; RestTemplate sends forecast body reliably (buffering fix).
-- **AI Forecasting Service (Python, 5050):** ETA via Haversine + ML speed; `POST /api/forecast/{order_id}` for Java/dashboard; **Logistics Assistant** `POST /api/assistant/chat` — Bedrock (Claude 3.5 Haiku, us-east-1) with live distance/ETA grounding; real replies when AWS credentials in `.env`, fallback otherwise.
+- **Order Service (Java, 8082):** CRUD + telemetry ingestion to DynamoDB; calls AI service for ETA on GET order; RestTemplate sends forecast body reliably (buffering fix). **Cloud-ready:** DB config uses `${DB_URL}`, `${DB_USER}`, `${DB_PASSWORD}` (defaults: local Docker; override for RDS).
+- **AI Forecasting Service (Python, 5050):** ETA via Haversine + ML speed; `POST /api/forecast/{order_id}` for Java/dashboard; **Logistics Assistant** `POST /api/assistant/chat` — Bedrock (Claude 3.5 Haiku, us-east-1) with live distance/ETA grounding. **Cloud-ready:** DynamoDB client switches by `EXECUTION_ENV=lambda` (real AWS when Lambda); S3 forecast log utility (`app/utils/s3_logger.py`, `S3_LOG_BUCKET`); Mangum + Dockerfile.lambda.
 - **Dashboard:** Order list with Distance/ETA and red live-tracking indicator; simulation writes telemetry to DynamoDB; **Logistics Assistant** floating chat (select order → ask context-aware questions; calls POST /api/assistant/chat).
-- **Remaining:** None (Lambda-ready; Mangum + Dockerfile.lambda in place).
+- **Status:** **Cloud Ready.** Microservices are environment-aware and align with the EcoStream specification (RDS, DynamoDB, S3, Lambda path).
 
 ## Phase 1: Foundation (Scaffolding & Infrastructure)
 - [x] Create project directory structure.
@@ -47,3 +47,9 @@
 - [x] **End-to-end GenAI:** Dashboard Logistics Assistant chat box (floating bubble → dark chat window; select order, send message to Bedrock-backed assistant; auto-scroll, selection-aware placeholder).
 - [x] Setup GitHub Actions (CI/CD) — workflow triggers on push/PR to main; jobs: test-java-service (JDK 21, mvn clean test), test-python-service (Python 3.10, pytest).
 - [x] AWS Lambda migration — Mangum adapter in `app.main.handler`; `Dockerfile.lambda` (AWS Python 3.10 base image, CMD `app.main.handler`); service README documents Lambda Docker build.
+
+## Phase 5: Environment-aware / Cloud readiness
+- [x] **Java RDS config:** `application.properties` uses `${DB_URL}`, `${DB_USER}`, `${DB_PASSWORD}` with local Docker defaults; override for Amazon RDS.
+- [x] **Python DynamoDB:** Client checks `EXECUTION_ENV=lambda`; when set, connects to real AWS DynamoDB (no endpoint override); otherwise uses DynamoDB Local.
+- [x] **S3 log utility:** `app/utils/s3_logger.py` uploads JSON forecast summaries to an S3 bucket (env: `S3_LOG_BUCKET`, optional `S3_LOG_PREFIX`); no-op if bucket not set.
+- [x] **Spec alignment:** Project is Cloud Ready; Order Service → RDS, AI Service → Lambda + DynamoDB + S3 logs, per EcoStream technical specification.
