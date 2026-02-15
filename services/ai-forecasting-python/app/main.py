@@ -10,6 +10,7 @@ from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 
+from mangum import Mangum
 from app.api import assistant_routes, dev_routes, forecasting_routes
 
 # Load environment variables from .env file
@@ -83,6 +84,9 @@ app.include_router(assistant_routes.router)
 async def health_check():
     """Health check endpoint to verify service is running."""
     return {"status": "healthy", "service": "ai-forecasting"}
+
+
+handler = Mangum(app)
 
 
 if __name__ == "__main__":
