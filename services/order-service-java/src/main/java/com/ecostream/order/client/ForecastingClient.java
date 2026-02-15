@@ -3,7 +3,7 @@ package com.ecostream.order.client;
 import java.util.UUID;
 
 /**
- * Client for the AI Forecasting Service (Python, port 5000).
+ * Client for the AI Forecasting Service (Python, default port 5050).
  * Fetches ETA and distance for an order given its destination and priority.
  */
 public interface ForecastingClient {

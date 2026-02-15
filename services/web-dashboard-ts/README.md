@@ -4,7 +4,7 @@ React + TypeScript + Vite dashboard for EcoStream order and ETA visibility.
 
 ## Live tracking verification
 
-With Order Service (8082), AI Service (5000), and DynamoDB Local running:
+With Order Service (8082), AI Service (5050), and DynamoDB Local running:
 
 1. Run `npm run dev` and open http://localhost:5173.
 2. Enable **Auto-refresh (5s)** and ensure at least one order has telemetry and ETA.

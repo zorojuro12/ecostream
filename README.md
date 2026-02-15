@@ -21,7 +21,7 @@ The project is built on a distributed microservices architecture to ensure modul
 
 * **Order Management Service (Java/Spring Boot):** The "brain" of the operation, handling transactional order data and state management.
 * **AI Forecasting Service (Python/FastAPI):** An asynchronous service that runs predictive models using `Scikit-Learn` to estimate arrival times.
-* **GenAI Operations Assistant:** A specialized module utilizing **Amazon Bedrock** to synthesize complex logistics logs into plain-English summaries for managers.
+* **GenAI Logistics Assistant:** Implemented in the AI Forecasting Service: **Amazon Bedrock** (Converse API, Claude 3.5 Haiku, us-east-1) answers questions grounded with live distance and ETA via `POST /api/assistant/chat`.
 * **Operations Dashboard (TypeScript/React):** A real-time interface for visualizing delivery metrics and carbon savings.
 
 ---
@@ -49,8 +49,8 @@ We utilize a dual-database approach to optimize performance:
 ### **2. Serverless Data Pipeline**
 Implemented a serverless ingress using **AWS Lambda** and **API Gateway**. This allows the system to scale instantly during peak delivery hours while reducing idle infrastructure costs by **40%**.
 
-### **3. GenAI "Operations Assistant"**
-Integrated **Claude 3 via Amazon Bedrock** to automate supply chain summaries. Instead of auditing logs manually, managers receive a daily "Bottleneck Summary" that highlights specific routes requiring intervention, improving response times by **30%**.
+### **3. GenAI "Logistics Assistant"**
+The AI Forecasting Service exposes **POST /api/assistant/chat**: user questions are grounded with live distance and ETA (from Haversine + telemetry), then sent to **Claude 3.5 Haiku via Amazon Bedrock** (Converse API, us-east-1). **Verified:** With AWS credentials in the service `.env`, the assistant returns real Claude replies (e.g. delay analysis); without credentials or on access-denied, a friendly fallback message is returned. See `services/ai-forecasting-python/README.md` for the API contract and curl examples.
 
 ### **4. CI/CD & Operational Excellence**
 A robust pipeline via **GitHub Actions** automates testing and deployment to AWS. The project maintains **100% test coverage** for core services and uses **AWS CloudWatch** for real-time monitoring and log aggregation.

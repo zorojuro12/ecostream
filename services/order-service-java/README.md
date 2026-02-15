@@ -85,11 +85,15 @@ The Order Service is responsible for CRUD operations on orders and orchestration
   - `TelemetryRepository` using AWS SDK v2 Enhanced Client
   - DynamoDB Local configuration with endpoint override
   - Table creation script available
-- ✅ **Test Coverage:** Comprehensive unit tests using JUnit 5 and Mockito
-  - 13 total tests (9 controller, 3 entity, 1 service)
-  - Controller tests with MockMvc covering all CRUD endpoints and telemetry ingestion
-  - Service tests with mocked repository
-  - Entity tests for data model validation
+- ✅ **AI Forecasting Integration:** GET order by ID enriches response with ETA from Python AI Service
+  - `ForecastingClient` calls `POST http://localhost:5050/api/forecast/{orderId}` (configurable via `ai.forecasting.base-url`) with destination and priority
+  - Response DTO includes `distanceKm` and `estimatedArrivalMinutes` when AI service is available
+  - Priority mapped to Express (priority ≥ 5) or Standard for ML speed prediction
+  - Resilient: on AI timeout or failure, order is still returned with null ETA (500ms timeout)
+  - **Verified:** RestTemplate uses `BufferingClientHttpRequestFactory` so the POST body is sent reliably; dashboard shows Distance (km), ETA (min), and red live-tracking indicator for the order used in the simulation
+- ✅ **Test Coverage:** Comprehensive unit and integration tests using JUnit 5 and Mockito
+  - OrderServiceForecastingIntegrationTest: mocked AI client; resiliency test when AI fails
+  - Controller, entity, and service tests as above
 
 ### Implemented
 - ✅ Health check endpoint (`/health`) - Returns service status (`HealthController`)
@@ -124,7 +128,12 @@ The Order Service is responsible for CRUD operations on orders and orchestration
   - Accepts `LocationDTO` with coordinate validation
   - Saves to DynamoDB with orderId and timestamp
   - Real-time console logging for observability
-- ⏳ Integration with AI Forecasting Service
+- ✅ Integration with AI Forecasting Service
+  - `ForecastingClient` / `ForecastingClientImpl` (RestTemplate), `ForecastResponseDTO`
+  - `RestTemplateConfig`: `BufferingClientHttpRequestFactory` wraps `SimpleClientHttpRequestFactory` so the forecast request body is buffered and sent (fixes body not received by Python with Spring 6.1.x)
+  - `OrderServiceImpl.getOrderById()` calls AI service; try-catch and 500ms timeout for resiliency
+  - `OrderResponseDTO`: `distanceKm`, `estimatedArrivalMinutes` (null when AI unavailable)
+  - `ForecastingClientImplTest`: TDD test verifies client sends non-empty JSON body with snake_case fields
 
 ## Verified Commands
 

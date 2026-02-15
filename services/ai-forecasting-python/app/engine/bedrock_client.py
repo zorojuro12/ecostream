@@ -3,20 +3,36 @@ Bedrock Converse API client for the EcoStream Logistics Assistant.
 Uses boto3 bedrock-runtime and anthropic.claude-3-5-haiku in us-east-1.
 """
 import logging
+from pathlib import Path
 from typing import Optional
 
 import boto3
 
 logger = logging.getLogger(__name__)
 
-MODEL_ID = "anthropic.claude-3-5-haiku-20241022-v1:0"
+MODEL_ID = "us.anthropic.claude-3-5-haiku-20241022-v1:0"
 ACCESS_DENIED_FALLBACK = (
     "My satellite link is currently updating. Please check back in 2 minutes!"
 )
 
 
+def _ensure_env_loaded() -> None:
+    """Load .env from service and repo root so credentials match aws-test.py / CLI."""
+    try:
+        from dotenv import load_dotenv
+        # This file: app/engine/bedrock_client.py -> parent.parent.parent = service root (ai-forecasting-python)
+        service_dir = Path(__file__).resolve().parent.parent.parent
+        load_dotenv(service_dir / ".env")
+        # Repo root (parent of services/) so same as scripts/aws-test.py
+        repo_root = service_dir.parent.parent
+        load_dotenv(repo_root / ".env")
+    except ImportError:
+        pass
+
+
 def get_bedrock_client():
     """Return a Bedrock Runtime client for us-east-1 (verified region)."""
+    _ensure_env_loaded()
     return boto3.client("bedrock-runtime", region_name="us-east-1")
 
 
