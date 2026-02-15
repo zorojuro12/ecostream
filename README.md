@@ -93,7 +93,7 @@ EcoStream combines real-time delivery telemetry, ML-based ETA forecasting, and a
 | **Frontend** | TypeScript, React, Vite, Tailwind |
 | **Data** | PostgreSQL (orders), DynamoDB (telemetry) |
 | **AI/ML** | Amazon Bedrock (Claude 3.5 Haiku), Scikit-Learn |
-| **DevOps** | Docker, Docker Compose; GitHub Actions (planned) |
+| **DevOps** | Docker, Docker Compose; GitHub Actions (CI on push/PR to main) |
 
 ---
 
