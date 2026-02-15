@@ -2,7 +2,6 @@
 TDD: Forecast API must accept the exact JSON body the Java client sends (snake_case).
 Definition of Done: POST /api/forecast/{order_id} with that body must NOT return 422.
 """
-import pytest
 from unittest.mock import patch
 
 from fastapi.testclient import TestClient

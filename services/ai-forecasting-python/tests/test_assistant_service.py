@@ -2,7 +2,6 @@
 TDD: Logistics Assistant service with data grounding.
 Uses Order Service as SSoT for destination/priority; injects distance/ETA into prompt.
 """
-import pytest
 from unittest.mock import MagicMock, patch
 
 from app.services import assistant_service

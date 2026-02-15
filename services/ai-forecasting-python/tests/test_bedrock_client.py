@@ -2,8 +2,7 @@
 TDD: Bedrock Converse client for Logistics Assistant.
 Step 1 (Red): Test that get_ai_insight uses converse() and returns a string.
 """
-import pytest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 # Import after patching so we use the mock client
 from app.engine import bedrock_client
