@@ -4,9 +4,11 @@ interface OrderListProps {
   orders: Order[]
   /** When true, show a live-tracking pulse next to Distance when order has ETA */
   liveTracking?: boolean
+  selectedOrderId: string | null
+  onSelectOrder: (id: string) => void
 }
 
-export function OrderList({ orders, liveTracking = false }: OrderListProps) {
+export function OrderList({ orders, liveTracking = false, selectedOrderId, onSelectOrder }: OrderListProps) {
   if (orders.length === 0) {
     return (
       <p className="text-slate-400 text-sm py-8">No orders yet.</p>
@@ -38,7 +40,13 @@ export function OrderList({ orders, liveTracking = false }: OrderListProps) {
           {orders.map((order) => (
             <tr
               key={order.id}
-              className="border-b border-slate-700/80 hover:bg-slate-700/30 transition-colors"
+              role="button"
+              tabIndex={0}
+              onClick={() => onSelectOrder(order.id)}
+              onKeyDown={(e) => e.key === 'Enter' && onSelectOrder(order.id)}
+              className={`border-b border-slate-700/80 transition-colors cursor-pointer ${
+                selectedOrderId === order.id ? 'bg-emerald-900/30' : 'hover:bg-slate-700/30'
+              }`}
             >
               <td className="px-4 py-3 font-mono text-sm" data-testid="order-id">
                 {order.id}
