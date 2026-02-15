@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { postAssistantChat } from '../api/assistantClient'
 
 export type ChatMessage = { role: 'user' | 'assistant'; text: string }
 
@@ -10,13 +11,29 @@ export function AssistantChat({ selectedOrderId }: AssistantChatProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
+  const [loading, setLoading] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const trimmed = input.trim()
-    if (!trimmed) return
+    if (!trimmed || !selectedOrderId) return
     setMessages((prev) => [...prev, { role: 'user', text: trimmed }])
     setInput('')
+    setLoading(true)
+    try {
+      const reply = await postAssistantChat(selectedOrderId, trimmed)
+      setMessages((prev) => [...prev, { role: 'assistant', text: reply }])
+    } catch (err) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: 'assistant',
+          text: err instanceof Error ? err.message : 'Failed to get a response.',
+        },
+      ])
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -39,7 +56,7 @@ export function AssistantChat({ selectedOrderId }: AssistantChatProps) {
             <p className="text-xs text-slate-400">Context-aware support</p>
           </div>
           <div className="flex-1 overflow-y-auto p-3">
-            {messages.length === 0 ? (
+            {messages.length === 0 && !loading ? (
               <p className="text-sm text-slate-500">No messages yet. Say hello.</p>
             ) : (
               <ul className="space-y-3">
@@ -59,6 +76,13 @@ export function AssistantChat({ selectedOrderId }: AssistantChatProps) {
                     </span>
                   </li>
                 ))}
+                {loading && (
+                  <li className="text-left text-sm">
+                    <span className="inline-block rounded-lg bg-slate-700 px-3 py-2 text-slate-300">
+                      Claude is thinking…
+                    </span>
+                  </li>
+                )}
               </ul>
             )}
           </div>
@@ -68,10 +92,12 @@ export function AssistantChat({ selectedOrderId }: AssistantChatProps) {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Type a message…"
+              disabled={!selectedOrderId || loading}
               className="flex-1 rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
             />
             <button
               type="submit"
+              disabled={!selectedOrderId || loading}
               className="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:opacity-50"
             >
               Send
