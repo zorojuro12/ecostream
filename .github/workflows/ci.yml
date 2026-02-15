@@ -1,0 +1,13 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  _placeholder:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "CI workflow initialized"
