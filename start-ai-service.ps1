@@ -58,7 +58,8 @@ if ($LASTEXITCODE -ne 0) {
 }
 Write-Host "Dependencies installed successfully!" -ForegroundColor Green
 
-# Start the service
-Write-Host "Starting AI Forecasting Service on port 5000..." -ForegroundColor Green
+# Start the service on 5050 by default (5000-5035 often in Windows excluded range - WSAEACCES 10013). Override with $env:PORT.
+$port = if ($env:PORT) { $env:PORT } else { 5050 }
+Write-Host "Starting AI Forecasting Service on port $port..." -ForegroundColor Green
 Write-Host "Press Ctrl+C to stop the service" -ForegroundColor Yellow
-uvicorn app.main:app --host 0.0.0.0 --port 5000 --reload
+uvicorn app.main:app --host 0.0.0.0 --port $port --reload

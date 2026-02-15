@@ -9,16 +9,33 @@ start-ai-service.sh
   |-- web-dashboard-ts
   |-- ai-forecasting-python
   |-- order-service-java
+    |-- .ruff_cache
     |-- app
+    |-- tests
     |-- .env
     |-- README.md
     |-- requirements.txt
+      |-- 0.8.0
+      |-- CACHEDIR.TAG
+        |-- 12243352946582534464
+        |-- 7674208168582431412
       |-- api
       |-- engine
       |-- services
       |-- main.py
       |-- __init__.py
+        |-- forecasting_routes.py
         |-- schemas.py
+        |-- test_routes.py
+        |-- __init__.py
+        |-- forecaster.py
+        |-- forecasting_service.py
+        |-- telemetry_service.py
+        |-- __init__.py
+      |-- unit
+      |-- __init__.py
+        |-- test_forecaster.py
+        |-- __init__.py
     |-- src
     |-- pom.xml
     |-- README.md
