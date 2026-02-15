@@ -33,3 +33,22 @@ def test_get_ai_insight_calls_converse_and_returns_string():
     assert call_kw["messages"][0]["content"][0]["text"] == "Why am I delayed?"
     assert result == "Based on your current speed, traffic is likely the cause."
     assert isinstance(result, str)
+
+
+def test_get_ai_insight_returns_fallback_on_access_denied():
+    """On AccessDeniedException, return friendly fallback message."""
+    mock_client = MagicMock()
+    mock_client.converse.side_effect = mock_client.exceptions.AccessDeniedException(
+        {"Error": {"Code": "AccessDeniedException", "Message": "Access Denied"}}, "Converse"
+    )
+    # Ensure exceptions.AccessDeniedException exists on the mock
+    if not hasattr(mock_client, "exceptions"):
+        mock_client.exceptions = MagicMock()
+    mock_client.exceptions.AccessDeniedException = type(
+        "AccessDeniedException", (Exception,), {}
+    )
+    mock_client.converse.side_effect = mock_client.exceptions.AccessDeniedException()
+
+    result = bedrock_client.get_ai_insight(mock_client, "Hello")
+
+    assert bedrock_client.ACCESS_DENIED_FALLBACK in result or "satellite" in result.lower()
