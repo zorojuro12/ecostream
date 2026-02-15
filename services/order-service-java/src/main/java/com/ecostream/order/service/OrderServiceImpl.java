@@ -73,11 +73,33 @@ public class OrderServiceImpl implements OrderService {
 
         Order order = orderOptional.get();
         OrderResponseDTO dto = mapToResponseDTO(order);
+        enrichWithForecast(order.getId(), order, dto);
+        log.info("Order retrieved successfully with ID: {}", id);
+        return Optional.of(dto);
+    }
 
+    @Override
+    public List<OrderResponseDTO> getAllOrders() {
+        log.debug("Retrieving all orders");
+        List<Order> orders = orderRepository.findAll();
+        log.info("Retrieved {} orders", orders.size());
+        return orders.stream()
+                .map(order -> {
+                    OrderResponseDTO dto = mapToResponseDTO(order);
+                    enrichWithForecast(order.getId(), order, dto);
+                    return dto;
+                })
+                .toList();
+    }
+
+    /**
+     * Fetches ETA/distance from AI service and sets them on the DTO when available.
+     */
+    private void enrichWithForecast(UUID orderId, Order order, OrderResponseDTO dto) {
         try {
             String priorityForAi = order.getPriority() != null && order.getPriority() >= 5 ? "Express" : "Standard";
             ForecastResponseDTO forecast = forecastingClient.getForecast(
-                    id,
+                    orderId,
                     order.getDestinationLatitude(),
                     order.getDestinationLongitude(),
                     priorityForAi);
@@ -86,24 +108,8 @@ public class OrderServiceImpl implements OrderService {
                 dto.setEstimatedArrivalMinutes(forecast.estimatedArrivalMinutes());
             }
         } catch (Exception e) {
-            log.warn("AI forecasting unavailable for order {}: {}", id, e.getMessage());
-            // Leave ETA and distanceKm null so core order data is still returned
+            log.warn("AI forecasting unavailable for order {}: {}", orderId, e.getMessage());
         }
-
-        log.info("Order retrieved successfully with ID: {}", id);
-        return Optional.of(dto);
-    }
-
-    @Override
-    public List<OrderResponseDTO> getAllOrders() {
-        log.debug("Retrieving all orders");
-        
-        List<Order> orders = orderRepository.findAll();
-        log.info("Retrieved {} orders", orders.size());
-        
-        return orders.stream()
-                .map(this::mapToResponseDTO)
-                .toList();
     }
 
     @Override
@@ -159,6 +165,13 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public void ingestTelemetry(UUID orderId, TelemetryRequestDTO request) {
+        // #region agent log
+        try (var w = new java.io.FileWriter("d:\\Personal Projects\\ecostream\\.cursor\\debug.log", true)) {
+            Double lat = request != null ? request.getCurrentLatitude() : null;
+            Double lon = request != null ? request.getCurrentLongitude() : null;
+            w.write("{\"hypothesisId\":\"H4\",\"message\":\"ingestTelemetry entry\",\"data\":{\"orderId\":\"" + orderId + "\",\"lat\":" + lat + ",\"lon\":" + lon + "},\"timestamp\":" + System.currentTimeMillis() + "}\n");
+        } catch (Exception e) { /* ignore */ }
+        // #endregion
         log.debug("Ingesting telemetry for orderId: {}", orderId);
         
         // Get current timestamp in epoch seconds
@@ -173,7 +186,17 @@ public class OrderServiceImpl implements OrderService {
                 .build();
         
         // Save to DynamoDB
-        telemetryRepository.save(telemetry);
+        // #region agent log
+        try {
+            telemetryRepository.save(telemetry);
+        } catch (Exception e) {
+            try (var w = new java.io.FileWriter("d:\\Personal Projects\\ecostream\\.cursor\\debug.log", true)) {
+                String msg = e.getMessage() != null ? e.getMessage().replace("\"", "'") : "";
+                w.write("{\"hypothesisId\":\"H1,H2,H3,H5\",\"message\":\"save failed\",\"data\":{\"exceptionClass\":\"" + e.getClass().getName() + "\",\"message\":\"" + msg + "\"},\"timestamp\":" + System.currentTimeMillis() + "}\n");
+            } catch (Exception x) { /* ignore */ }
+            throw e;
+        }
+        // #endregion
         
         // Real-time monitoring: Log ingestion details to console
         log.info("Telemetry ingested successfully for orderId: {}, timestamp: {}", orderId, timestamp);

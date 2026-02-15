@@ -10,7 +10,7 @@ EcoStream is a microservices platform for "last-mile" delivery optimization usin
    - DB: PostgreSQL (Orders), DynamoDB (Real-time tracking).
 2. **AI Service (Python/FastAPI)**
    - Responsibility: Delay prediction (Scikit-Learn), Route Analysis.
-   - Port: 5000
+   - Port: 5050 (5000–5035 often in Windows excluded range)
    - Integration: Amazon Bedrock (GenAI Assistant).
 3. **DynamoDB Local**
    - Port: 9000 (external, 8000 internal)
@@ -20,4 +20,4 @@ EcoStream is a microservices platform for "last-mile" delivery optimization usin
 - **Telemetry:** { orderId: UUID, currentCoords: Lat/Lng, timestamp: ISO8601 }
 
 ## Integration Contract
-- `POST http://localhost:5000/predict/delay`: Accepts order details, returns estimated delay minutes.
+- `POST http://localhost:5050/predict/delay`: Accepts order details, returns estimated delay minutes.

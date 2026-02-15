@@ -1,39 +1,59 @@
 package com.ecostream.order.client;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Map;
 import java.util.UUID;
 
 /**
- * RestTemplate-based client for the AI Forecasting Service at http://localhost:5000.
+ * RestTemplate-based client for the AI Forecasting Service.
+ * Base URL from application.properties (ai.forecasting.base-url); default 5050 (5000-5035 often excluded on Windows).
+ * Serializes request body to JSON explicitly so the Python service receives a non-empty body.
  */
 @Component
 public class ForecastingClientImpl implements ForecastingClient {
 
-    private static final String BASE_URL = "http://localhost:5000";
+    private final String baseUrl;
     private final RestTemplate restTemplate;
+    private final ObjectMapper objectMapper;
 
-    public ForecastingClientImpl(RestTemplate restTemplate) {
+    public ForecastingClientImpl(
+            @Value("${ai.forecasting.base-url:http://localhost:5050}") String baseUrl,
+            RestTemplate restTemplate,
+            ObjectMapper objectMapper) {
+        this.baseUrl = baseUrl;
         this.restTemplate = restTemplate;
+        this.objectMapper = objectMapper;
     }
 
     @Override
     public ForecastResponseDTO getForecast(UUID orderId, Double destinationLatitude,
                                            Double destinationLongitude, String priority) {
-        String url = BASE_URL + "/api/forecast/" + orderId;
-        Map<String, Object> body = Map.of(
-                "destination_latitude", destinationLatitude,
-                "destination_longitude", destinationLongitude,
-                "priority", priority != null ? priority : "Standard"
+        // No trailing slash: matches FastAPI route POST /api/forecast/{order_id} and avoids 307 redirect (which drops body)
+        String url = baseUrl + "/api/forecast/" + orderId.toString();
+        ForecastRequestDTO body = new ForecastRequestDTO(
+                destinationLatitude,
+                destinationLongitude,
+                priority != null ? priority : "Standard"
         );
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
-        return restTemplate.postForObject(url, request, ForecastResponseDTO.class);
+        String jsonBody;
+        try {
+            jsonBody = objectMapper.writeValueAsString(body);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to serialize forecast request", e);
+        }
+        HttpEntity<String> entity = new HttpEntity<>(jsonBody, headers);
+        ResponseEntity<ForecastResponseDTO> response =
+                restTemplate.exchange(url, HttpMethod.POST, entity, ForecastResponseDTO.class);
+        return response.getBody();
     }
 }

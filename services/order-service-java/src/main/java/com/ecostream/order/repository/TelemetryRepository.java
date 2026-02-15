@@ -43,11 +43,20 @@ public class TelemetryRepository {
      * @return the saved telemetry record
      */
     public Telemetry save(Telemetry telemetry) {
+        // #region agent log
+        try (var w = new java.io.FileWriter("d:\\Personal Projects\\ecostream\\.cursor\\debug.log", true)) {
+            w.write("{\"hypothesisId\":\"H5\",\"message\":\"TelemetryRepository.save entry\",\"data\":{\"orderId\":\"" + telemetry.getOrderId() + "\",\"ts\":" + telemetry.getTimestamp() + "},\"timestamp\":" + System.currentTimeMillis() + "}\n");
+        } catch (Exception e) { /* ignore */ }
+        // #endregion
         log.debug("Saving telemetry for orderId: {}, timestamp: {}", telemetry.getOrderId(), telemetry.getTimestamp());
         
         DynamoDbTable<Telemetry> table = getTable();
         table.putItem(telemetry);
-        
+        // #region agent log
+        try (var w = new java.io.FileWriter("d:\\Personal Projects\\ecostream\\.cursor\\debug.log", true)) {
+            w.write("{\"hypothesisId\":\"H5\",\"message\":\"TelemetryRepository.save success\",\"data\":{\"orderId\":\"" + telemetry.getOrderId() + "\"},\"timestamp\":" + System.currentTimeMillis() + "}\n");
+        } catch (Exception e) { /* ignore */ }
+        // #endregion
         log.debug("Telemetry saved successfully");
         return telemetry;
     }
