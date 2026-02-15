@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { fetchOrders } from './api/orderClient'
 import { OrderList } from './components/OrderList'
+import { AssistantChat } from './components/AssistantChat'
 import type { Order } from './api/types'
 import './App.css'
 
@@ -13,6 +14,7 @@ function App() {
   const [fetchState, setFetchState] = useState<FetchState>('idle')
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [autoRefresh, setAutoRefresh] = useState(true)
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null)
   const isMounted = useRef(true)
 
   const loadOrders = useCallback((showLoading = true) => {
@@ -94,9 +96,12 @@ function App() {
           <OrderList
             orders={orders}
             liveTracking={autoRefresh && orders.some((o) => o.estimatedArrivalMinutes != null)}
+            selectedOrderId={selectedOrderId}
+            onSelectOrder={setSelectedOrderId}
           />
         )}
       </div>
+      <AssistantChat selectedOrderId={selectedOrderId} />
     </main>
   )
 }
