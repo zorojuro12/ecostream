@@ -154,6 +154,8 @@ nbdist/
 
 # VS Code / Cursor
 .cursor/
+# Local Cursor rules (keep locally, do not commit to main)
+.cursorrules
 
 # ============================================
 # OS Specific Files

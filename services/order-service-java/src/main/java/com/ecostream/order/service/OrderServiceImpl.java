@@ -1,8 +1,11 @@
 package com.ecostream.order.service;
 
+import com.ecostream.order.client.ForecastResponseDTO;
+import com.ecostream.order.client.ForecastingClient;
 import com.ecostream.order.dto.LocationDTO;
 import com.ecostream.order.dto.OrderRequestDTO;
 import com.ecostream.order.dto.OrderResponseDTO;
+import com.ecostream.order.dto.TelemetryRequestDTO;
 import com.ecostream.order.dto.UpdateOrderRequestDTO;
 import com.ecostream.order.entity.Order;
 import com.ecostream.order.entity.OrderStatus;
@@ -28,6 +31,7 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
     private final TelemetryRepository telemetryRepository;
+    private final ForecastingClient forecastingClient;
 
     /**
      * Creates a new order from the provided request DTO.
@@ -59,29 +63,53 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public Optional<OrderResponseDTO> getOrderById(UUID id) {
         log.debug("Retrieving order with ID: {}", id);
-        
+
         Optional<Order> orderOptional = orderRepository.findById(id);
-        
+
         if (orderOptional.isEmpty()) {
             log.debug("Order not found with ID: {}", id);
             return Optional.empty();
         }
-        
+
         Order order = orderOptional.get();
+        OrderResponseDTO dto = mapToResponseDTO(order);
+        enrichWithForecast(order.getId(), order, dto);
         log.info("Order retrieved successfully with ID: {}", id);
-        return Optional.of(mapToResponseDTO(order));
+        return Optional.of(dto);
     }
 
     @Override
     public List<OrderResponseDTO> getAllOrders() {
         log.debug("Retrieving all orders");
-        
         List<Order> orders = orderRepository.findAll();
         log.info("Retrieved {} orders", orders.size());
-        
         return orders.stream()
-                .map(this::mapToResponseDTO)
+                .map(order -> {
+                    OrderResponseDTO dto = mapToResponseDTO(order);
+                    enrichWithForecast(order.getId(), order, dto);
+                    return dto;
+                })
                 .toList();
+    }
+
+    /**
+     * Fetches ETA/distance from AI service and sets them on the DTO when available.
+     */
+    private void enrichWithForecast(UUID orderId, Order order, OrderResponseDTO dto) {
+        try {
+            String priorityForAi = order.getPriority() != null && order.getPriority() >= 5 ? "Express" : "Standard";
+            ForecastResponseDTO forecast = forecastingClient.getForecast(
+                    orderId,
+                    order.getDestinationLatitude(),
+                    order.getDestinationLongitude(),
+                    priorityForAi);
+            if (forecast != null) {
+                dto.setDistanceKm(forecast.distanceKm());
+                dto.setEstimatedArrivalMinutes(forecast.estimatedArrivalMinutes());
+            }
+        } catch (Exception e) {
+            log.warn("AI forecasting unavailable for order {}: {}", orderId, e.getMessage());
+        }
     }
 
     @Override
@@ -136,7 +164,14 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public void ingestTelemetry(UUID orderId, LocationDTO location) {
+    public void ingestTelemetry(UUID orderId, TelemetryRequestDTO request) {
+        // #region agent log
+        try (var w = new java.io.FileWriter("d:\\Personal Projects\\ecostream\\.cursor\\debug.log", true)) {
+            Double lat = request != null ? request.getCurrentLatitude() : null;
+            Double lon = request != null ? request.getCurrentLongitude() : null;
+            w.write("{\"hypothesisId\":\"H4\",\"message\":\"ingestTelemetry entry\",\"data\":{\"orderId\":\"" + orderId + "\",\"lat\":" + lat + ",\"lon\":" + lon + "},\"timestamp\":" + System.currentTimeMillis() + "}\n");
+        } catch (Exception e) { /* ignore */ }
+        // #endregion
         log.debug("Ingesting telemetry for orderId: {}", orderId);
         
         // Get current timestamp in epoch seconds
@@ -146,12 +181,22 @@ public class OrderServiceImpl implements OrderService {
         Telemetry telemetry = Telemetry.builder()
                 .orderId(orderId.toString())
                 .timestamp(timestamp)
-                .currentLatitude(location.getLatitude())
-                .currentLongitude(location.getLongitude())
+                .currentLatitude(request.getCurrentLatitude())
+                .currentLongitude(request.getCurrentLongitude())
                 .build();
         
         // Save to DynamoDB
-        telemetryRepository.save(telemetry);
+        // #region agent log
+        try {
+            telemetryRepository.save(telemetry);
+        } catch (Exception e) {
+            try (var w = new java.io.FileWriter("d:\\Personal Projects\\ecostream\\.cursor\\debug.log", true)) {
+                String msg = e.getMessage() != null ? e.getMessage().replace("\"", "'") : "";
+                w.write("{\"hypothesisId\":\"H1,H2,H3,H5\",\"message\":\"save failed\",\"data\":{\"exceptionClass\":\"" + e.getClass().getName() + "\",\"message\":\"" + msg + "\"},\"timestamp\":" + System.currentTimeMillis() + "}\n");
+            } catch (Exception x) { /* ignore */ }
+            throw e;
+        }
+        // #endregion
         
         // Real-time monitoring: Log ingestion details to console
         log.info("Telemetry ingested successfully for orderId: {}, timestamp: {}", orderId, timestamp);
@@ -175,6 +220,8 @@ public class OrderServiceImpl implements OrderService {
                 .status(order.getStatus())
                 .destination(locationDTO)
                 .priority(order.getPriority())
+                .distanceKm(null)
+                .estimatedArrivalMinutes(null)
                 .build();
     }
 }

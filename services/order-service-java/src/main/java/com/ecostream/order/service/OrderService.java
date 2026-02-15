@@ -59,7 +59,7 @@ public interface OrderService {
      * Saves the current coordinates to DynamoDB with a timestamp.
      *
      * @param orderId the UUID of the order
-     * @param location the current location coordinates
+     * @param request the telemetry request with currentLatitude and currentLongitude
      */
-    void ingestTelemetry(UUID orderId, com.ecostream.order.dto.LocationDTO location);
+    void ingestTelemetry(UUID orderId, com.ecostream.order.dto.TelemetryRequestDTO request);
 }

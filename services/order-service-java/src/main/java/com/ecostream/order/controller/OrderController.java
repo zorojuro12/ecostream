@@ -3,6 +3,7 @@ package com.ecostream.order.controller;
 import com.ecostream.order.dto.LocationDTO;
 import com.ecostream.order.dto.OrderRequestDTO;
 import com.ecostream.order.dto.OrderResponseDTO;
+import com.ecostream.order.dto.TelemetryRequestDTO;
 import com.ecostream.order.dto.UpdateOrderRequestDTO;
 import com.ecostream.order.service.OrderService;
 import jakarta.validation.Valid;
@@ -22,6 +23,7 @@ import java.util.UUID;
  */
 @RestController
 @RequestMapping("/api/orders")
+@CrossOrigin(origins = "http://localhost:5173")
 @RequiredArgsConstructor
 @Slf4j
 public class OrderController {
@@ -136,10 +138,10 @@ public class OrderController {
     @PostMapping("/{id}/telemetry")
     public ResponseEntity<Void> ingestTelemetry(
             @PathVariable UUID id,
-            @Valid @RequestBody LocationDTO location) {
+            @Valid @RequestBody TelemetryRequestDTO request) {
         log.debug("Received telemetry data for order ID: {}", id);
         
-        orderService.ingestTelemetry(id, location);
+        orderService.ingestTelemetry(id, request);
         
         log.debug("Telemetry ingestion accepted for order ID: {}", id);
         return ResponseEntity.status(HttpStatus.ACCEPTED).build();
