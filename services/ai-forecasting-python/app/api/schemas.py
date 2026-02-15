@@ -2,7 +2,7 @@
 Pydantic schemas for request/response validation.
 Mirrors Java service validation rules for coordinate parity.
 """
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class Location(BaseModel):
@@ -31,18 +31,22 @@ class Location(BaseModel):
 class ForecastRequest(BaseModel):
     """
     Request body for forecasting endpoint.
-    Contains destination coordinates and optional priority for ML speed prediction.
+    Accepts snake_case or camelCase for Java client compatibility.
     """
+    model_config = ConfigDict(populate_by_name=True)
+
     destination_latitude: float = Field(
         ...,
         ge=-90.0,
         le=90.0,
+        alias="destinationLatitude",
         description="Destination latitude. Must be between -90 and 90 degrees (inclusive)."
     )
     destination_longitude: float = Field(
         ...,
         ge=-180.0,
         le=180.0,
+        alias="destinationLongitude",
         description="Destination longitude. Must be between -180 and 180 degrees (inclusive)."
     )
     priority: str = Field(
@@ -58,3 +62,27 @@ class ForecastResponse(BaseModel):
     """
     distance_km: float = Field(..., description="Distance to destination in kilometers")
     estimated_arrival_minutes: float = Field(..., description="Estimated arrival time in minutes")
+
+
+class AssistantChatRequest(BaseModel):
+    """Request body for Logistics Assistant chat (POST /api/assistant/chat)."""
+    order_id: str = Field(..., description="Order ID for grounding with telemetry/ETA")
+    message: str = Field(..., min_length=1, description="User question for the assistant")
+    destination_latitude: float = Field(
+        ...,
+        ge=-90.0,
+        le=90.0,
+        description="Destination latitude for ETA context.",
+    )
+    destination_longitude: float = Field(
+        ...,
+        ge=-180.0,
+        le=180.0,
+        description="Destination longitude for ETA context.",
+    )
+    priority: str = Field(default="Standard", description="Order priority: Express or Standard")
+
+
+class AssistantChatResponse(BaseModel):
+    """Response from Logistics Assistant chat."""
+    reply: str = Field(..., description="Assistant reply (grounded with distance/ETA)")
