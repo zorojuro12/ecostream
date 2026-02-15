@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { postAssistantChat } from '../api/assistantClient'
 
 export type ChatMessage = { role: 'user' | 'assistant'; text: string }
@@ -12,6 +12,11 @@ export function AssistantChat({ selectedOrderId }: AssistantChatProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages, loading])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -56,7 +61,11 @@ export function AssistantChat({ selectedOrderId }: AssistantChatProps) {
             <p className="text-xs text-slate-400">Context-aware support</p>
           </div>
           <div className="flex-1 overflow-y-auto p-3">
-            {messages.length === 0 && !loading ? (
+            {!selectedOrderId ? (
+              <p className="text-sm text-slate-400">
+                Please select an order to chat with the Logistics Assistant.
+              </p>
+            ) : messages.length === 0 && !loading ? (
               <p className="text-sm text-slate-500">No messages yet. Say hello.</p>
             ) : (
               <ul className="space-y-3">
@@ -83,6 +92,7 @@ export function AssistantChat({ selectedOrderId }: AssistantChatProps) {
                     </span>
                   </li>
                 )}
+                <li ref={messagesEndRef} aria-hidden />
               </ul>
             )}
           </div>
