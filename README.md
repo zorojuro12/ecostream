@@ -1,5 +1,7 @@
 # EcoStream
 
+[![CI](https://github.com/Your-Username/ecostream/actions/workflows/ci.yml/badge.svg)](https://github.com/Your-Username/ecostream/actions/workflows/ci.yml)
+
 **A serverless-ready, polyglot microservices platform utilizing GenAI for logistics optimization.**
 
 EcoStream combines real-time delivery telemetry, ML-based ETA forecasting, and a context-aware **Logistics Assistant** (Claude via Amazon Bedrock) to optimize last-mile delivery. Built with Java (Order Service), Python (AI Service), and a TypeScript/React dashboard—running locally today with a clear path to AWS.
