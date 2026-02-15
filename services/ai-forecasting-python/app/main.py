@@ -8,6 +8,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import assistant_routes, test_routes, forecasting_routes
 
@@ -21,6 +22,15 @@ app = FastAPI(
     title="EcoStream AI Forecasting Service",
     description="Delay prediction and route analysis using GenAI",
     version="1.0.0"
+)
+
+# Allow dashboard (Vite default localhost:5173) to call this service
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["*"],
 )
 
 
