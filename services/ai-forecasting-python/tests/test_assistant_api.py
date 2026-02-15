@@ -2,7 +2,6 @@
 TDD: POST /api/assistant/chat must return real Bedrock reply when client succeeds.
 When Bedrock is available (or mocked), response must NOT be the fallback message.
 """
-import pytest
 from unittest.mock import MagicMock, patch
 
 from fastapi.testclient import TestClient
