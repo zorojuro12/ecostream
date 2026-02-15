@@ -10,7 +10,7 @@ from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import assistant_routes, test_routes, forecasting_routes
+from app.api import assistant_routes, dev_routes, forecasting_routes
 
 # Load environment variables from .env file
 env_path = Path(__file__).parent.parent / ".env"
@@ -74,7 +74,7 @@ async def validation_exception_handler(request, exc: RequestValidationError):
 
 
 # Mount API routes
-app.include_router(test_routes.router)
+app.include_router(dev_routes.router)
 app.include_router(forecasting_routes.router)
 app.include_router(assistant_routes.router)
 

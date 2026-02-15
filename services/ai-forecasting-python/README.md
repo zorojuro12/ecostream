@@ -218,7 +218,7 @@ pytest tests/unit/test_forecaster.py -v
 
 ## Code Organization
 - `/app/engine`: Pure ML/forecasting (no I/O) - `forecaster.py`, `model_loader.py`, `bedrock_client.py` (Bedrock Converse, us-east-1)
-- `/app/api`: Routes and schemas - `forecasting_routes.py`, `test_routes.py`, `assistant_routes.py`, `schemas.py`
+- `/app/api`: Routes and schemas - `forecasting_routes.py`, `dev_routes.py`, `assistant_routes.py`, `schemas.py`
 - `/app/services`: Business logic and DynamoDB - `telemetry_service.py`, `forecasting_service.py`, `assistant_service.py`
 - `/scripts`: `train_mock_model.py` - trains and saves `models/speed_model.joblib`
 - `/tests/unit`: `test_forecaster.py`, `test_ml_engine.py`
