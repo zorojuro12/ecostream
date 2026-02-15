@@ -1,0 +1,22 @@
+# Server Configuration
+server.port=8082
+spring.application.name=order-service
+
+# PostgreSQL Database Configuration
+spring.datasource.url=jdbc:postgresql://localhost:5432/ecostream
+spring.datasource.username=ecostream
+spring.datasource.password=ecostream
+spring.datasource.driver-class-name=org.postgresql.Driver
+
+# JPA/Hibernate Configuration
+# For development: 'update' creates/updates tables automatically from entities
+# For production: use 'validate' with Flyway/Liquibase migrations
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=false
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+spring.jpa.properties.hibernate.format_sql=true
+
+# DynamoDB Local Configuration (for local development)
+# AWS SDK will use these when connecting to DynamoDB Local
+# Endpoint: http://localhost:9000
+# Note: For production, configure AWS credentials via environment variables or IAM roles

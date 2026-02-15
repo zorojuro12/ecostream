@@ -1,10 +1,31 @@
 ---
+description: Python FastAPI development standards, service structure, and ML integration
+globs: services/ai-forecasting-python/**/*
 alwaysApply: true
 ---
 
-# Python FastAPI Standards
-- Use Ruff for linting and formatting.
-- Port: 8000.
-- All request/response bodies must use Pydantic schemas.
-- Keep ML models in `/engine` and API routes in `/api`.
-- Write unit tests using Pytest.
+# Python FastAPI Rules
+
+## 1. Execution & Environment
+- **Port:** Strictly use port **5000**.
+- **Startup:** `uvicorn app.main:app --host 0.0.0.0 --port 5000 --reload`.
+- **Environment:** Use `python-dotenv` for all configuration. No hardcoded endpoints or AWS keys.
+- **Dependencies:** Manage via `requirements.txt`. Must include `fastapi`, `uvicorn`, `boto3`, `pydantic`, `scikit-learn`, `python-dotenv`, and `ruff`.
+
+## 2. Project Structure
+- **/app/api:** FastAPI routers and endpoint definitions (Controllers).
+- **/app/engine:** Pure ML/Forecasting logic. **Strict Rule: No I/O or Database calls allowed here.**
+- **/app/services:** Business logic and DynamoDB interactions (boto3).
+- **/tests:** Pytest suites matching the `/app` structure.
+
+## 3. Data & AI Standards
+- **Validation:** Use Pydantic v2. Coordinate validation MUST mirror the Java service:
+  - Latitude: -90 to 90
+  - Longitude: -180 to 180
+- **Type Hinting:** Use Python type hints for all function signatures to prevent runtime logic errors.
+- **Logging:** Use standard `logging` with a JSON formatter for cloud-ready, structured logs.
+
+## 4. Testing & Verification
+- **TDD:** Follow the Red-Green-Refactor workflow. Write a failing test in `/tests` before implementing API logic.
+- **Mocks:** Use **Moto** or `unittest.mock` to simulate DynamoDB responses. Do not hit the live local DB during unit tests.
+- **Formatting:** Use **Ruff** for all linting and formatting (`ruff check . --fix`).
