@@ -31,9 +31,10 @@
 - [x] **VERIFIED:** Forecasting API endpoint (`POST /api/forecast/{order_id}`) functional.
 - [x] Integrate Scikit-Learn model for delay prediction.
 - [x] Connect Java Order Service to Python AI Service.
+- [x] **VERIFIED:** Forecast POST body fix — Order Service uses `BufferingClientHttpRequestFactory` so the JSON body is sent reliably to the AI service (Spring 6.1.x default could set Content-Length but not write body bytes). Dashboard now shows Distance (km), ETA (min), and red live-tracking indicator for orders when simulation runs.
 
 ## Phase 4: AWS & Full-Stack Dashboard
-- [ ] Integrate Amazon Bedrock for "Logistics Assistant."
+- [x] Integrate Amazon Bedrock for "Logistics Assistant." (boto3 Converse API, Claude 3.5 Haiku, us-east-1; data grounding with distance/ETA; POST /api/assistant/chat; AccessDenied fallback)
 - [x] Initialize TypeScript/React Dashboard (Vite, Vitest, Tailwind, Order List with ETA, Refresh, loading/error states).
 - [x] Real-time telemetry visualization (live polling, movement simulator, blinking pulse when ETA + auto-refresh).
 - [ ] Setup GitHub Actions (CI/CD) and AWS Lambda migration.
