@@ -1,89 +1,100 @@
-# EcoStream Logistics Engine
+# EcoStream
 
-**EcoStream** is a cloud-native, microservices-based logistics platform designed to optimize "last-mile" delivery routes while minimizing carbon emissions. By leveraging a polyglot architecture and Generative AI, EcoStream transforms real-time delivery telemetry into actionable insights for warehouse managers.
+**A serverless-ready, polyglot microservices platform utilizing GenAI for logistics optimization.**
 
-
-
----
-
-## 🚀 Overview
-
-In the modern supply chain, "last-mile" delivery is the most expensive and carbon-intensive phase. **EcoStream** solves this by:
-1.  **Predicting Delays:** Utilizing machine learning to forecast disruptions based on traffic and weather.
-2.  **Automating Strategy:** Using LLMs (Claude 3 via Amazon Bedrock) to suggest inventory redistribution.
-3.  **Scaling Seamlessly:** Implementing a serverless data ingress pipeline to handle high-velocity telemetry.
+EcoStream combines real-time delivery telemetry, ML-based ETA forecasting, and a context-aware **Logistics Assistant** (Claude via Amazon Bedrock) to optimize last-mile delivery. Built with Java (Order Service), Python (AI Service), and a TypeScript/React dashboard—running locally today with a clear path to AWS.
 
 ---
 
-## 🏗 System Architecture
+## What's in the repo
 
-The project is built on a distributed microservices architecture to ensure modularity and high availability.
+| Service | Stack | Port | Role |
+|--------|--------|------|------|
+| **Order Service** | Java 21, Spring Boot | **8082** | CRUD + telemetry ingestion; enriches orders with ETA from the AI service. |
+| **AI Forecasting Service** | Python, FastAPI | **5050** | ETA (Haversine + Scikit-Learn), **Logistics Assistant** chat (Bedrock, Claude 3.5 Haiku). |
+| **Dashboard** | TypeScript, React, Vite, Tailwind | **5173** | Order list with Distance/ETA, live-tracking indicator, floating assistant chat. |
+| **PostgreSQL** | Docker | 5432 | Order persistence. |
+| **DynamoDB Local** | Docker | **9000** | Real-time telemetry (orderId + timestamp). |
 
-* **Order Management Service (Java/Spring Boot):** The "brain" of the operation, handling transactional order data and state management.
-* **AI Forecasting Service (Python/FastAPI):** An asynchronous service that runs predictive models using `Scikit-Learn` to estimate arrival times.
-* **GenAI Logistics Assistant:** Implemented in the AI Forecasting Service: **Amazon Bedrock** (Converse API, Claude 3.5 Haiku, us-east-1) answers questions grounded with live distance and ETA via `POST /api/assistant/chat`.
-* **Operations Dashboard (TypeScript/React):** A real-time interface for visualizing delivery metrics and carbon savings.
-
----
-
-## 🛠 Tech Stack
-
-| Component | Technology |
-| :--- | :--- |
-| **Backend** | Java (Spring Boot), Python (FastAPI) |
-| **Frontend** | TypeScript, React.js |
-| **Cloud (AWS)** | Lambda, API Gateway, S3, CodeDeploy |
-| **Databases** | Amazon RDS (PostgreSQL), DynamoDB |
-| **AI/ML** | Amazon Bedrock (Claude 3), Scikit-Learn |
-| **DevOps** | Docker, GitHub Actions, CloudWatch |
+- **Single Source of Truth:** The Order Service owns order and destination data; the AI service and dashboard consume it via APIs.
+- **Technical spec:** See [spec.md](spec.md) for architecture, data models, API contracts, and target cloud (API Gateway, Lambda, RDS, DynamoDB, S3, CloudWatch).
 
 ---
 
-## 🌟 Key Features & Engineering Highlights
+## Quick start (local)
 
-### **1. Polyglot Persistence Strategy**
-We utilize a dual-database approach to optimize performance:
-* **Amazon RDS (PostgreSQL):** Ensures ACID compliance for transactional order history and user data.
-* **Amazon DynamoDB:** A NoSQL solution for high-velocity, low-latency tracking of real-time delivery coordinates.
+**Prerequisites:** Java 21, Maven, Python 3.9+, Node.js, Docker.
 
-### **2. Serverless Data Pipeline**
-Implemented a serverless ingress using **AWS Lambda** and **API Gateway**. This allows the system to scale instantly during peak delivery hours while reducing idle infrastructure costs by **40%**.
+1. **Clone and start infrastructure**
+   ```bash
+   git clone https://github.com/Your-Username/ecostream.git
+   cd ecostream
+   docker-compose up -d postgres dynamodb-local
+   ```
 
-### **3. GenAI "Logistics Assistant"**
-The AI Forecasting Service exposes **POST /api/assistant/chat**: user questions are grounded with live distance and ETA (from Haversine + telemetry), then sent to **Claude 3.5 Haiku via Amazon Bedrock** (Converse API, us-east-1). **Verified:** With AWS credentials in the service `.env`, the assistant returns real Claude replies (e.g. delay analysis); without credentials or on access-denied, a friendly fallback message is returned. See `services/ai-forecasting-python/README.md` for the API contract and curl examples.
+2. **Create DynamoDB telemetry table** (one-time)
+   ```powershell
+   .\scripts\create-telemetry-table.ps1
+   ```
 
-### **4. CI/CD & Operational Excellence**
-A robust pipeline via **GitHub Actions** automates testing and deployment to AWS. The project maintains **100% test coverage** for core services and uses **AWS CloudWatch** for real-time monitoring and log aggregation.
+3. **Order Service** (from repo root)
+   ```bash
+   cd services/order-service-java && mvn spring-boot:run
+   ```
+   Runs on **8082**.
 
----
+4. **AI Service** (optional: add AWS credentials to `services/ai-forecasting-python/.env` for the assistant)
+   ```bash
+   cd services/ai-forecasting-python && pip install -r requirements.txt && uvicorn app.main:app --host 0.0.0.0 --port 5050
+   ```
+   Runs on **5050**.
 
-## 📈 Performance Metrics
-* **Availability:** Designed for 99.9% service uptime through microservice isolation.
-* **Efficiency:** Achieved a 25% increase in arrival time accuracy via the predictive delay algorithm.
-* **Deployment:** Reduced time-to-ship by 50% using automated CI/CD workflows.
+5. **Dashboard**
+   ```bash
+   cd services/web-dashboard-ts && npm install && npm run dev
+   ```
+   Open **http://localhost:5173**. Select an order, open the floating chat, and ask the Logistics Assistant (e.g. *"What is my current ETA?"*).
 
----
-
-## 🛠 Setup & Installation
-
-> **Note:** This project requires an AWS account and configured credentials.
-
-1.  **Clone the Repository:**
-    ```bash
-    git clone [https://github.com/](https://github.com/)[Your-Username]/ecostream.git
-    cd ecostream
-    ```
-2.  **Environment Setup:**
-    Create a `.env` file in the root directory and add your AWS credentials and database connection strings.
-3.  **Docker Orchestration:**
-    Build and run the entire ecosystem locally:
-    ```bash
-    docker-compose up --build
-    ```
+6. **Simulate movement** (optional)
+   ```bash
+   python scripts/simulate_movement.py <order-id>
+   ```
+   Use an order ID from the dashboard or from `GET http://localhost:8082/api/orders`.
 
 ---
 
-## 🛤 Roadmap
-- [ ] Implement Multi-Region failover for RDS.
-- [ ] Integrate real-time carbon footprint tracking per vehicle.
-- [ ] Expand GenAI capabilities to include automated driver dispatching.
+## Features
+
+- **Order CRUD & telemetry:** Create orders, ingest live coordinates via `POST /api/orders/{id}/telemetry`; data stored in PostgreSQL (orders) and DynamoDB (telemetry).
+- **ETA forecasting:** Order Service calls the AI service to enrich `GET /api/orders/{id}` with distance and estimated arrival time (Haversine + priority-based speed).
+- **Logistics Assistant:** Dashboard chat sends questions to `POST /api/assistant/chat`. The AI service fetches order context from the Order Service, computes live distance/ETA, and calls **Amazon Bedrock** (Converse API, Claude 3.5 Haiku, us-east-1) for grounded replies.
+- **Real-time UI:** Auto-refresh, live-tracking pulse, and selection-aware assistant chat.
+
+---
+
+## Documentation
+
+- **[spec.md](spec.md)** — Technical specification: local vs target cloud architecture, data models, API contracts, CI/CD.
+- **Service READMEs** — Per-service setup and APIs:
+  - [services/order-service-java/README.md](services/order-service-java/README.md)
+  - [services/ai-forecasting-python/README.md](services/ai-forecasting-python/README.md)
+  - [services/web-dashboard-ts/README.md](services/web-dashboard-ts/README.md)
+- **[progress.md](progress.md)** — Implementation progress and verification notes.
+
+---
+
+## Tech stack
+
+| Layer | Technologies |
+|-------|----------------|
+| **Backend** | Java 21 (Spring Boot), Python (FastAPI) |
+| **Frontend** | TypeScript, React, Vite, Tailwind |
+| **Data** | PostgreSQL (orders), DynamoDB (telemetry) |
+| **AI/ML** | Amazon Bedrock (Claude 3.5 Haiku), Scikit-Learn |
+| **DevOps** | Docker, Docker Compose; GitHub Actions (planned) |
+
+---
+
+## License
+
+See [LICENSE](LICENSE) if present.
