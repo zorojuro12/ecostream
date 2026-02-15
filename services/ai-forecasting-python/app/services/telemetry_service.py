@@ -16,24 +16,28 @@ logger = logging.getLogger(__name__)
 # DynamoDB configuration from environment
 DYNAMODB_URL = os.getenv("DYNAMODB_URL", "http://localhost:9000")
 REGION = os.getenv("REGION", "us-east-1")
-TABLE_NAME = "ecostream-telemetry-local"
+TABLE_NAME = os.getenv("DYNAMODB_TABLE_NAME", "ecostream-telemetry-local")
 
 
 def get_dynamodb_client():
     """
-    Creates and returns a boto3 DynamoDB client configured for local development.
-    Overrides endpoint to http://localhost:9000 as required.
+    Creates and returns a boto3 DynamoDB client.
+    When EXECUTION_ENV=lambda, connects to real AWS DynamoDB (no endpoint override).
+    Otherwise uses local DynamoDB at DYNAMODB_URL (default http://localhost:9000).
     """
     config = Config(
         region_name=REGION,
         retries={"max_attempts": 3, "mode": "standard"}
     )
-    
+    if os.getenv("EXECUTION_ENV") == "lambda":
+        # Cloud: use default AWS DynamoDB; credentials from IAM role or env
+        return boto3.client("dynamodb", region_name=REGION, config=config)
+    # Local: override endpoint and use dummy credentials for DynamoDB Local
     return boto3.client(
         "dynamodb",
         endpoint_url=DYNAMODB_URL,
         region_name=REGION,
-        aws_access_key_id="dummy",  # Dummy credentials for local DynamoDB
+        aws_access_key_id="dummy",
         aws_secret_access_key="dummy",
         config=config
     )
