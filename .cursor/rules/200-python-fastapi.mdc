@@ -8,7 +8,7 @@ alwaysApply: true
 
 ## 1. Execution & Environment
 - **Port:** Strictly use port **5000**.
-- **Startup:** `uvicorn app.main:app --host 0.0.0.0 --port 5000 --reload`.
+- **Startup:** `uvicorn app.main:app --host 0.0.0.0 --port 5050 --reload`.
 - **Environment:** Use `python-dotenv` for all configuration. No hardcoded endpoints or AWS keys.
 - **Dependencies:** Manage via `requirements.txt`. Must include `fastapi`, `uvicorn`, `boto3`, `pydantic`, `scikit-learn`, `python-dotenv`, and `ruff`.
 
