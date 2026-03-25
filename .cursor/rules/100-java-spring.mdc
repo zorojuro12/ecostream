@@ -8,9 +8,14 @@ alwaysApply: true
 
 ## 1. Project Structure & Organization
 - **Pattern:** Strictly follow the Controller-Service-Repository architectural pattern.
-- **Packages:** - Controllers: `com.ecostream.order.controller`
-  - Models/Entities: `com.ecostream.order.model`
+- **Packages:**
+  - Controllers: `com.ecostream.order.controller`
+  - Entities: `com.ecostream.order.entity`
+  - DTOs: `com.ecostream.order.dto`
   - Services: `com.ecostream.order.service`
+  - Repositories: `com.ecostream.order.repository`
+  - Clients (inter-service): `com.ecostream.order.client`
+  - Configuration: `com.ecostream.order.config`
 - **Configuration:** `src/main/resources/application.properties` must be the source of truth for DB and Port (8082) settings.
 
 ## 2. Implementation Standards

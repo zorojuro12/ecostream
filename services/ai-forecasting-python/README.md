@@ -148,21 +148,21 @@ pip list | findstr "fastapi uvicorn pydantic scikit-learn boto3"
 
 # Option B: Manual start
 python -m app.main
-# Expected: Application startup on port 5000
+# Expected: Application startup on port 5050
 
 # Option C: Uvicorn directly
-uvicorn app.main:app --host 0.0.0.0 --port 5000 --reload
-# Expected: Uvicorn running on http://0.0.0.0:5000
+uvicorn app.main:app --host 0.0.0.0 --port 5050 --reload
+# Expected: Uvicorn running on http://0.0.0.0:5050
 ```
 
 ### Health Check
 ```bash
 # Test health endpoint (PowerShell)
-curl.exe http://localhost:5000/health
+curl.exe http://localhost:5050/health
 # Expected: {"status":"healthy","service":"ai-forecasting"}
 
 # Alternative (PowerShell)
-Invoke-RestMethod -Uri http://localhost:5000/health
+Invoke-RestMethod -Uri http://localhost:5050/health
 # Expected: status=healthy, service=ai-forecasting
 ```
 

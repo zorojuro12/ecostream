@@ -1,0 +1,31 @@
+---
+description: Standards for Amazon Bedrock, Boto3 Converse API, and GenAI orchestration in us-east-1
+globs: services/ai-forecasting-python/**/*
+alwaysApply: true
+---
+
+# Amazon Bedrock & GenAI Standards
+
+## 1. Interaction Protocol
+- **API Choice:** Use the `boto3` Converse API (`client.converse()`) exclusively. It is the 2026 standard for multi-turn conversations.
+- **Model ID:** Use `us.anthropic.claude-3-5-haiku-20241022-v1:0` (US inference profile). Fallback: `anthropic.claude-3-haiku-20240307-v1:0` if 3.5 is not in your catalog.
+- **Hardcoded Region:** Always initialize the Bedrock client with `region_name='us-east-1'`.
+
+## 2. Prompt Engineering & Grounding
+- **Identity:** The System Prompt must define the AI as the "EcoStream Logistics Assistant."
+- **Data Injection:** Before invoking the model, the code MUST fetch live data from:
+    - `haversine_engine`: Current Distance
+    - `forecaster`: Predicted ETA
+    - `dynamodb`: Latest Telemetry Coordinate
+- **Prompt Format:** Use XML-style tags for data to help the LLM parse context: `<context>Distance: {d}km, ETA: {e}min</context>`.
+
+## 3. Reliability & Validation
+- **Exception Handling:** Catch `AccessDeniedException`. If it occurs, return a friendly mock: "My satellite link is currently updating. Please check back in 2 minutes!"
+- **Commit Rule:** Follow the **Micro-Commit Rule**: 
+    1. Commit the `bedrock_client.py`.
+    2. Commit the `assistant_service.py` (logic/prompting).
+    3. Commit the API route integration.
+
+## 4. Local Environment
+- **Credentials:** Load `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` from the root `.env`.
+- **Table Names:** Use `ecostream-telemetry-local` for all lookups.

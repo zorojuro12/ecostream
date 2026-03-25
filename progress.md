@@ -2,7 +2,7 @@
 
 ## Current state (summary)
 - **Order Service (Java, 8082):** CRUD + telemetry ingestion to DynamoDB; calls AI service for ETA on GET order; RestTemplate sends forecast body reliably (buffering fix). **Cloud-ready:** DB config uses `${DB_URL}`, `${DB_USER}`, `${DB_PASSWORD}` (defaults: local Docker; override for RDS).
-- **AI Forecasting Service (Python, 5050):** ETA via Haversine + ML speed; `POST /api/forecast/{order_id}` for Java/dashboard; **Logistics Assistant** `POST /api/assistant/chat` — Bedrock (Claude 3.5 Haiku, us-east-1) with live distance/ETA grounding. **Cloud-ready:** DynamoDB client switches by `EXECUTION_ENV=lambda` (real AWS when Lambda); S3 forecast log utility (`app/utils/s3_logger.py`, `S3_LOG_BUCKET`); Mangum + Dockerfile.lambda.
+- **AI Forecasting Service (Python, 5050):** ETA via Haversine + priority-based speed heuristic (ML model scaffolded but not committed); `POST /api/forecast/{order_id}` for Java/dashboard; **Logistics Assistant** `POST /api/assistant/chat` — Bedrock (Claude 3.5 Haiku, us-east-1) with live distance/ETA grounding. **Cloud-ready:** DynamoDB client switches by `EXECUTION_ENV=lambda` (real AWS when Lambda); S3 logger utility exists but not yet wired; Mangum + Dockerfile.lambda.
 - **Dashboard:** Order list with Distance/ETA and red live-tracking indicator; simulation writes telemetry to DynamoDB; **Logistics Assistant** floating chat (select order → ask context-aware questions; calls POST /api/assistant/chat).
 - **Status:** **Cloud Ready.** Microservices are environment-aware and align with the EcoStream specification (RDS, DynamoDB, S3, Lambda path).
 
@@ -35,7 +35,7 @@
 - [x] **VERIFIED:** Haversine distance engine tested with SFU campuses (13.72 km accuracy).
 - [x] **VERIFIED:** Base forecasting service with constant speed (40 km/h) placeholder.
 - [x] **VERIFIED:** Forecasting API endpoint (`POST /api/forecast/{order_id}`) functional.
-- [x] Integrate Scikit-Learn model for delay prediction.
+- [ ] Integrate Scikit-Learn model for delay prediction. *(Partial: training script exists but no `.joblib` model committed; runtime uses hardcoded speed heuristic.)*
 - [x] Connect Java Order Service to Python AI Service.
 - [x] **VERIFIED:** Forecast POST body fix — Order Service uses `BufferingClientHttpRequestFactory` so the JSON body is sent reliably to the AI service (Spring 6.1.x default could set Content-Length but not write body bytes). Dashboard now shows Distance (km), ETA (min), and red live-tracking indicator for orders when simulation runs.
 
@@ -45,11 +45,11 @@
 - [x] Initialize TypeScript/React Dashboard (Vite, Vitest, Tailwind, Order List with ETA, Refresh, loading/error states).
 - [x] Real-time telemetry visualization (live polling, movement simulator, blinking pulse when ETA + auto-refresh).
 - [x] **End-to-end GenAI:** Dashboard Logistics Assistant chat box (floating bubble → dark chat window; select order, send message to Bedrock-backed assistant; auto-scroll, selection-aware placeholder).
-- [x] Setup GitHub Actions (CI/CD) — workflow triggers on push/PR to main; jobs: test-java-service (JDK 21, mvn clean test), test-python-service (Python 3.10, pytest).
+- [x] Setup GitHub Actions (CI/CD) — workflow triggers on push/PR to main; jobs: test-java-service (JDK 21, mvn clean test), test-python-service (Python 3.10, pytest). *(Partial: dashboard CI job and Ruff lint step not yet added.)*
 - [x] AWS Lambda migration — Mangum adapter in `app.main.handler`; `Dockerfile.lambda` (AWS Python 3.10 base image, CMD `app.main.handler`); service README documents Lambda Docker build.
 
 ## Phase 5: Environment-aware / Cloud readiness
 - [x] **Java RDS config:** `application.properties` uses `${DB_URL}`, `${DB_USER}`, `${DB_PASSWORD}` with local Docker defaults; override for Amazon RDS.
 - [x] **Python DynamoDB:** Client checks `EXECUTION_ENV=lambda`; when set, connects to real AWS DynamoDB (no endpoint override); otherwise uses DynamoDB Local.
-- [x] **S3 log utility:** `app/utils/s3_logger.py` uploads JSON forecast summaries to an S3 bucket (env: `S3_LOG_BUCKET`, optional `S3_LOG_PREFIX`); no-op if bucket not set.
+- [ ] **S3 log utility:** `app/utils/s3_logger.py` exists but is **not wired** into any service flow (dead code). Needs to be called from forecast or assistant pipeline.
 - [x] **Spec alignment:** Project is Cloud Ready; Order Service → RDS, AI Service → Lambda + DynamoDB + S3 logs, per EcoStream technical specification.
