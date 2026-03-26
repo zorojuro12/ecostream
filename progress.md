@@ -3,7 +3,7 @@
 ## Current state (summary)
 - **Order Service (Java, 8082):** CRUD + telemetry ingestion to DynamoDB; calls AI service for ETA on GET order; RestTemplate sends forecast body reliably (buffering fix). **Cloud-ready:** DB config uses `${DB_URL}`, `${DB_USER}`, `${DB_PASSWORD}` (defaults: local Docker; override for RDS).
 - **AI Forecasting Service (Python, 5050):** ETA via Haversine + **ML speed model** (RandomForest trained on NYC Taxi Trip Duration data; features: distance, hour, day-of-week, month, priority); `POST /api/forecast/{order_id}` for Java/dashboard; **Logistics Assistant** `POST /api/assistant/chat` — Bedrock (Claude 3.5 Haiku, us-east-1) with live distance/ETA grounding. **Cloud-ready:** DynamoDB client switches by `EXECUTION_ENV=lambda` (real AWS when Lambda); S3 logger utility exists but not yet wired; Mangum + Dockerfile.lambda.
-- **Dashboard:** Order list with Distance/ETA and red live-tracking indicator; simulation writes telemetry to DynamoDB; **Logistics Assistant** floating chat (select order → ask context-aware questions; calls POST /api/assistant/chat).
+- **Dashboard:** Order list with Distance/ETA and red live-tracking indicator; **Live delivery map** (Leaflet.js on CARTO dark tiles) with vehicle/destination markers and route polyline, telemetry polled from Python service; **Logistics Assistant** floating chat (select order → ask context-aware questions; calls POST /api/assistant/chat).
 - **Status:** **Cloud Ready.** Microservices are environment-aware and align with the EcoStream specification (RDS, DynamoDB, S3, Lambda path).
 
 ## Phase 1: Foundation (Scaffolding & Infrastructure)
@@ -44,6 +44,7 @@
 - [x] **VERIFIED:** Logistics Assistant returns real Bedrock replies when AWS credentials are set in `.env`; `get_bedrock_client()` loads .env (service + repo root) so the running app has the same credentials as `scripts/aws-test.py`.
 - [x] Initialize TypeScript/React Dashboard (Vite, Vitest, Tailwind, Order List with ETA, Refresh, loading/error states).
 - [x] Real-time telemetry visualization (live polling, movement simulator, blinking pulse when ETA + auto-refresh).
+- [x] **VERIFIED:** Live delivery map — Leaflet.js `DeliveryMap` component with CARTO dark tiles, vehicle (green) + destination (blue) markers, dashed route polyline. Dashboard fetches telemetry directly from Python service (`GET /api/test/telemetry/{orderId}`) with 5-second polling. Vite build passes, 1/1 tests pass.
 - [x] **End-to-end GenAI:** Dashboard Logistics Assistant chat box (floating bubble → dark chat window; select order, send message to Bedrock-backed assistant; auto-scroll, selection-aware placeholder).
 - [x] Setup GitHub Actions (CI/CD) — workflow triggers on push/PR to main; jobs: test-java-service (JDK 21, mvn clean test), test-python-service (Python 3.10, pytest). *(Partial: dashboard CI job and Ruff lint step not yet added.)*
 - [x] AWS Lambda migration — Mangum adapter in `app.main.handler`; `Dockerfile.lambda` (AWS Python 3.10 base image, CMD `app.main.handler`); service README documents Lambda Docker build.
