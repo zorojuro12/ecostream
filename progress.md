@@ -2,7 +2,7 @@
 
 ## Current state (summary)
 - **Order Service (Java, 8082):** CRUD + telemetry ingestion to DynamoDB; calls AI service for ETA on GET order; RestTemplate sends forecast body reliably (buffering fix). **Cloud-ready:** DB config uses `${DB_URL}`, `${DB_USER}`, `${DB_PASSWORD}` (defaults: local Docker; override for RDS).
-- **AI Forecasting Service (Python, 5050):** ETA via Haversine + priority-based speed heuristic (ML model scaffolded but not committed); `POST /api/forecast/{order_id}` for Java/dashboard; **Logistics Assistant** `POST /api/assistant/chat` — Bedrock (Claude 3.5 Haiku, us-east-1) with live distance/ETA grounding. **Cloud-ready:** DynamoDB client switches by `EXECUTION_ENV=lambda` (real AWS when Lambda); S3 logger utility exists but not yet wired; Mangum + Dockerfile.lambda.
+- **AI Forecasting Service (Python, 5050):** ETA via Haversine + **ML speed model** (RandomForest trained on NYC Taxi Trip Duration data; features: distance, hour, day-of-week, month, priority); `POST /api/forecast/{order_id}` for Java/dashboard; **Logistics Assistant** `POST /api/assistant/chat` — Bedrock (Claude 3.5 Haiku, us-east-1) with live distance/ETA grounding. **Cloud-ready:** DynamoDB client switches by `EXECUTION_ENV=lambda` (real AWS when Lambda); S3 logger utility exists but not yet wired; Mangum + Dockerfile.lambda.
 - **Dashboard:** Order list with Distance/ETA and red live-tracking indicator; simulation writes telemetry to DynamoDB; **Logistics Assistant** floating chat (select order → ask context-aware questions; calls POST /api/assistant/chat).
 - **Status:** **Cloud Ready.** Microservices are environment-aware and align with the EcoStream specification (RDS, DynamoDB, S3, Lambda path).
 
@@ -35,7 +35,7 @@
 - [x] **VERIFIED:** Haversine distance engine tested with SFU campuses (13.72 km accuracy).
 - [x] **VERIFIED:** Base forecasting service with constant speed (40 km/h) placeholder.
 - [x] **VERIFIED:** Forecasting API endpoint (`POST /api/forecast/{order_id}`) functional.
-- [ ] Integrate Scikit-Learn model for delay prediction. *(Partial: training script exists but no `.joblib` model committed; runtime uses hardcoded speed heuristic.)*
+- [x] **VERIFIED:** Scikit-Learn delivery speed model trained on NYC Taxi Trip Duration dataset (Kaggle). RandomForest pipeline with 5 features (distance_km, hour_of_day, day_of_week, month, priority). Evaluation: MAE 4.24 km/h, R² 0.45. Committed model artifact (`models/speed_model.joblib`) and processed training data (`data/training_data.csv`, 20k rows). 14/14 tests pass.
 - [x] Connect Java Order Service to Python AI Service.
 - [x] **VERIFIED:** Forecast POST body fix — Order Service uses `BufferingClientHttpRequestFactory` so the JSON body is sent reliably to the AI service (Spring 6.1.x default could set Content-Length but not write body bytes). Dashboard now shows Distance (km), ETA (min), and red live-tracking indicator for orders when simulation runs.
 

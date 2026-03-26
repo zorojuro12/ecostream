@@ -27,9 +27,11 @@ The AI Forecasting Service provides delay prediction, route analysis, and the **
    pip install -r requirements.txt
    ```
 
-2. **Optional - Train the speed model** (if `models/speed_model.joblib` is missing, the service falls back to hardcoded Express=60 km/h, Standard=30 km/h):
+2. **Optional - Retrain the speed model** (a pre-trained `models/speed_model.joblib` is committed; retrain only if you want to update):
    ```bash
-   python scripts/train_mock_model.py
+   # Download NYC Taxi Trip Duration train.csv from Kaggle → data/raw/train.csv
+   python scripts/prepare_training_data.py   # clean + feature engineer → data/training_data.csv
+   python scripts/train_model.py             # train RandomForest → models/speed_model.joblib
    ```
 
 3. **Run the Service:**
@@ -80,10 +82,11 @@ The image uses the AWS base image `public.ecr.aws/lambda/python:3.10`, installs 
 - [x] ForecastRequest: destination coordinates + optional `priority` (Express / Standard)
 - [x] ForecastResponse: `distance_km`, `estimated_arrival_minutes`
 
-### Engine (Pure ML, No I/O)
+### Engine (ML + Haversine)
 - [x] Haversine distance (`app/engine/forecaster.py`) - unit tested (SFU campuses ~13.72 km)
-- [x] Priority-based speed prediction (`app/engine/model_loader.py`): loads `models/speed_model.joblib` or falls back to Express=60 km/h, Standard=30 km/h
-- [x] Training script: `scripts/train_mock_model.py` produces a Scikit-Learn pipeline saved as `.joblib`
+- [x] **Delivery speed prediction** (`app/engine/model_loader.py`): RandomForest pipeline trained on NYC Taxi Trip Duration data (Kaggle, 1.46M trips). Features: `distance_km`, `hour_of_day`, `day_of_week`, `month`, `priority`. Evaluation: MAE 4.24 km/h, RMSE 5.79 km/h, R² 0.45. Falls back to time-aware heuristic if model file missing.
+- [x] Data pipeline: `scripts/prepare_training_data.py` (cleans raw CSV → `data/training_data.csv`, 20k rows)
+- [x] Training script: `scripts/train_model.py` (train/test split, evaluate, save `models/speed_model.joblib`)
 
 ### Services
 - [x] DynamoDB Telemetry Reader (`app/services/telemetry_service.py`) - endpoint http://localhost:9000, `get_latest_telemetry(order_id)`
@@ -100,7 +103,7 @@ The image uses the AWS base image `public.ecr.aws/lambda/python:3.10`, installs 
 
 ### Testing
 - [x] `tests/unit/test_forecaster.py` - Haversine
-- [x] `tests/unit/test_ml_engine.py` - priority-based speed and travel time (mocked and real model)
+- [x] `tests/unit/test_ml_engine.py` - multi-feature speed prediction (Express vs Standard, rush-hour vs off-peak, model vs fallback)
 - [x] `tests/test_bedrock_client.py` - Bedrock Converse client (converse called, fallback on AccessDenied)
 - [x] `tests/test_assistant_service.py` - assistant chat with mocked ETA and get_ai_insight (data grounding)
 - [x] `tests/test_assistant_api.py` - POST /api/assistant/chat returns real reply when Bedrock mocked (not fallback)
@@ -228,9 +231,11 @@ pytest tests/unit/test_forecaster.py -v
 - **Region:** Bedrock client uses `us-east-1`. Model: `us.anthropic.claude-3-5-haiku-20241022-v1:0`.
 
 ## Code Organization
-- `/app/engine`: Pure ML/forecasting (no I/O) - `forecaster.py`, `model_loader.py`, `bedrock_client.py` (Bedrock Converse, us-east-1)
+- `/app/engine`: ML/forecasting - `forecaster.py` (Haversine), `model_loader.py` (speed prediction), `bedrock_client.py` (Bedrock Converse, us-east-1)
 - `/app/api`: Routes and schemas - `forecasting_routes.py`, `dev_routes.py`, `assistant_routes.py`, `schemas.py`
 - `/app/services`: Business logic and DynamoDB - `telemetry_service.py`, `forecasting_service.py`, `assistant_service.py`
-- `/scripts`: `train_mock_model.py` - trains and saves `models/speed_model.joblib`
+- `/scripts`: `prepare_training_data.py` (raw CSV → features), `train_model.py` (train + evaluate → `.joblib`)
+- `/data`: `training_data.csv` (20k processed rows, committed); `raw/` (source CSVs, gitignored)
+- `/models`: `speed_model.joblib` (trained RandomForest pipeline, committed)
 - `/tests/unit`: `test_forecaster.py`, `test_ml_engine.py`
 - `/tests`: `test_bedrock_client.py`, `test_assistant_service.py`, `test_forecast_api.py`
