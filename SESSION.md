@@ -1,18 +1,17 @@
 # EcoStream Session State
 
 ## Last Updated
-2026-03-29 — Dashboard CI + component tests (Priority #7)
+2026-03-29 — Structured JSON logging (Priority #8)
 
 ## Priority List (Interview Readiness)
 
 ### Active / Remaining
-| # | Task | Status | Est. Time |
-|---|------|--------|-----------|
-| 8 | Structured JSON logging (Python) | **NEXT** | 1 hr |
+All 8 priorities complete.
 
 ### Completed
 | # | Task | Date |
 |---|------|------|
+| 8 | Structured JSON logging (Python) | 2026-03-29 |
 | 7 | Add dashboard to CI + component tests | 2026-03-29 |
 | 6 | Deploy AI service to real Lambda (minimal SAM) | 2026-03-29 |
 | 5 | Wire S3 logger into forecast flow | 2026-03-29 |
@@ -36,8 +35,8 @@
 
 ## Active Context
 - **Branch:** `feat/cloud-readiness`
-- **Just completed:** Priority #7 — Dashboard CI + component tests. 13 tests (OrderList, AssistantChat, assistantClient, orderClient). Fixed pre-existing TS errors. Added dashboard job to CI (Node 20, build + vitest).
-- **Up next:** Priority #8 — Structured JSON logging (Python).
+- **Just completed:** Priority #8 — Structured JSON logging. `JsonFormatter` outputs single-line JSON to stdout. Configured at app startup, `LOG_LEVEL` env-configurable. 19/19 Python tests pass.
+- **All priorities complete.** Project is interview-ready.
 
 ## Key Decisions Made
 - **Circuit breaker config:** Count-based sliding window (size=10, threshold=50%, min calls=5) — request volume is low so time-based would need higher traffic. 10s wait in OPEN, 3 probes in HALF_OPEN.
@@ -49,15 +48,10 @@
 - **Time features from server:** hour_of_day, day_of_week, month from `datetime.now()`, not from request.
 - **Map telemetry source:** Option B (dashboard fetches from Python service directly) — avoids Java DTO changes.
 
-## Files Recently Modified (Dashboard CI + Tests)
-- `services/web-dashboard-ts/src/components/OrderList.test.tsx` (new — 5 tests)
-- `services/web-dashboard-ts/src/components/AssistantChat.test.tsx` (new — 5 tests)
-- `services/web-dashboard-ts/src/api/assistantClient.test.ts` (new — 2 tests)
-- `services/web-dashboard-ts/src/test/setup.ts` (scrollIntoView polyfill)
-- `services/web-dashboard-ts/vite.config.ts` (vitest type reference)
-- `services/web-dashboard-ts/src/components/AssistantChat.tsx` (ref type fix)
-- `services/web-dashboard-ts/src/components/DeliveryMap.tsx` (Leaflet cast fix)
-- `.github/workflows/ci.yml` (added test-dashboard job)
+## Files Recently Modified (JSON Logging)
+- `services/ai-forecasting-python/app/utils/logging_config.py` (new — JsonFormatter + configure_logging)
+- `services/ai-forecasting-python/app/main.py` (call configure_logging at startup)
+- `services/ai-forecasting-python/tests/test_logging_config.py` (new — 2 tests)
 - `progress.md`, `SESSION.md`
 
 ## Tradeoffs & Deferred Alternatives
