@@ -1,20 +1,20 @@
 # EcoStream Session State
 
 ## Last Updated
-2026-03-29 — Wired S3 logger into forecast flow (Priority #5)
+2026-03-29 — SAM template for Lambda deployment (Priority #6)
 
 ## Priority List (Interview Readiness)
 
 ### Active / Remaining
 | # | Task | Status | Est. Time |
 |---|------|--------|-----------|
-| 6 | Deploy AI service to real Lambda (minimal SAM) | **NEXT** | 2-3 hrs |
-| 7 | Add dashboard to CI + component tests | PENDING | 1-2 hrs |
+| 7 | Add dashboard to CI + component tests | **NEXT** | 1-2 hrs |
 | 8 | Structured JSON logging (Python) | PENDING | 1 hr |
 
 ### Completed
 | # | Task | Date |
 |---|------|------|
+| 6 | Deploy AI service to real Lambda (minimal SAM) | 2026-03-29 |
 | 5 | Wire S3 logger into forecast flow | 2026-03-29 |
 | 4 | Spring Boot Actuator + Resilience4j circuit breaker | 2026-03-29 |
 | 3 | Live delivery map (Leaflet.js) | 2025-03-25 |
@@ -36,8 +36,8 @@
 
 ## Active Context
 - **Branch:** `feat/cloud-readiness`
-- **Just completed:** Priority #5 — Wired `upload_forecast_log()` into `calculate_eta()`. Every successful forecast is durably logged to S3 (fire-and-forget, no-op when `S3_LOG_BUCKET` is empty). 3 new tests, 17/17 Python tests pass.
-- **Up next:** Priority #6 — Deploy AI service to real Lambda (minimal SAM).
+- **Just completed:** Priority #6 — SAM template for Lambda deployment. Created `template.yaml` (Lambda container image + HTTP API Gateway + IAM for DynamoDB/S3/Bedrock), `samconfig.toml`, deploy script, updated Dockerfile to include ML model, and made CORS env-configurable. 17/17 Python tests pass.
+- **Up next:** Priority #7 — Add dashboard to CI + component tests.
 
 ## Key Decisions Made
 - **Circuit breaker config:** Count-based sliding window (size=10, threshold=50%, min calls=5) — request volume is low so time-based would need higher traffic. 10s wait in OPEN, 3 probes in HALF_OPEN.
@@ -49,12 +49,14 @@
 - **Time features from server:** hour_of_day, day_of_week, month from `datetime.now()`, not from request.
 - **Map telemetry source:** Option B (dashboard fetches from Python service directly) — avoids Java DTO changes.
 
-## Files Recently Modified (S3 Logger Wiring)
-- `services/ai-forecasting-python/app/services/forecasting_service.py` (import + call `upload_forecast_log`)
-- `services/ai-forecasting-python/.env` (added `S3_LOG_BUCKET`, `S3_LOG_PREFIX`)
-- `services/ai-forecasting-python/tests/test_s3_logger.py` (new — 3 tests)
-- `services/ai-forecasting-python/README.md` (S3 logging in Services + Testing sections)
-- `progress.md` (S3 logger marked verified)
+## Files Recently Modified (SAM Lambda Deployment)
+- `services/ai-forecasting-python/template.yaml` (new — SAM template: Lambda + API Gateway + IAM)
+- `services/ai-forecasting-python/samconfig.toml` (new — SAM deployment defaults)
+- `services/ai-forecasting-python/scripts/deploy-lambda.sh` (new — one-command deploy script)
+- `services/ai-forecasting-python/Dockerfile.lambda` (added `COPY models ./models`)
+- `services/ai-forecasting-python/app/main.py` (env-configurable CORS origins)
+- `services/ai-forecasting-python/README.md` (SAM deployment section)
+- `progress.md` (SAM Lambda marked verified)
 - `SESSION.md` (this file)
 
 ## Tradeoffs & Deferred Alternatives
