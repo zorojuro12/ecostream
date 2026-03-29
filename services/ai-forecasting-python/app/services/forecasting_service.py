@@ -11,6 +11,7 @@ from typing import Optional
 from app.engine.forecaster import calculate_haversine_distance
 from app.engine.model_loader import predict_speed
 from app.services.telemetry_service import get_latest_telemetry
+from app.utils.s3_logger import upload_forecast_log
 
 logger = logging.getLogger(__name__)
 
@@ -68,6 +69,8 @@ def calculate_eta(
         speed_kmh,
         now.hour,
     )
+
+    upload_forecast_log(order_id, distance_km, estimated_arrival_minutes, priority)
 
     return {
         "distance_km": round(distance_km, 2),
