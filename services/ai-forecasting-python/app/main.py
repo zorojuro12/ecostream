@@ -11,10 +11,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from mangum import Mangum
 
 from app.api import assistant_routes, dev_routes, forecasting_routes
+from app.utils.logging_config import configure_logging
 
 env_path = Path(__file__).parent.parent / ".env"
 load_dotenv(dotenv_path=env_path)
 
+configure_logging()
 logger = logging.getLogger(__name__)
 
 _DEFAULT_ORIGINS = ["http://localhost:5173", "http://127.0.0.1:5173"]
