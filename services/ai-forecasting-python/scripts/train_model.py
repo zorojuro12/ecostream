@@ -121,7 +121,7 @@ def main() -> None:
     offpeak_std = wrapper.predict(hour_of_day=2, priority="Standard", **baseline)
     rush_exp = wrapper.predict(hour_of_day=8, priority="Express", **baseline)
 
-    print(f"\n--- Sanity checks (5 km, March, Wednesday) ---")
+    print("\n--- Sanity checks (5 km, March, Wednesday) ---")
     print(f"  Rush-hour Standard (8am):  {rush_std:.1f} km/h")
     print(f"  Off-peak  Standard (2am):  {offpeak_std:.1f} km/h")
     print(f"  Rush-hour Express  (8am):  {rush_exp:.1f} km/h")

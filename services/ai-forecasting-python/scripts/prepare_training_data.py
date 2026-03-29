@@ -116,9 +116,9 @@ def main() -> None:
     print(f"\nOutput: {OUTPUT_PATH}")
     print(f"  Rows: {len(df_out):,}")
     print(f"  Columns: {list(df_out.columns)}")
-    print(f"\nFeature summary:")
+    print("\nFeature summary:")
     print(df_out.describe().round(2).to_string())
-    print(f"\nPriority distribution:")
+    print("\nPriority distribution:")
     print(df_out["priority"].value_counts().to_string())
 
 

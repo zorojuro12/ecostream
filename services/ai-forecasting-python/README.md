@@ -58,16 +58,65 @@ The AI Forecasting Service provides delay prediction, route analysis, and the **
    curl http://localhost:5050/health
    ```
 
-## Building the Lambda Docker image
+## AWS Lambda Deployment (SAM)
 
-The service is Lambda-ready via [Mangum](https://mangum.io/) and a dedicated Dockerfile. To build the image used for AWS Lambda (or Lambda-style container deployment):
+The service deploys to AWS Lambda as a container image via **SAM (Serverless Application Model)**. The SAM template provisions a Lambda function, HTTP API Gateway, and IAM policies for DynamoDB, S3, and Bedrock.
 
+### Prerequisites
+- [AWS SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html) installed
+- AWS CLI configured (`aws configure`) with a profile that has deploy permissions
+- Docker running (SAM builds the container image locally)
+
+### Quick deploy
 ```bash
 cd services/ai-forecasting-python
-docker build -f Dockerfile.lambda -t ecostream-ai-lambda .
+./scripts/deploy-lambda.sh
 ```
 
-The image uses the AWS base image `public.ecr.aws/lambda/python:3.10`, installs dependencies from `requirements.txt`, copies the `app` directory, and sets the Lambda handler to `app.main.handler` (the Mangum-wrapped FastAPI app). Push this image to ECR and configure your Lambda function to use it.
+### Step-by-step
+```bash
+cd services/ai-forecasting-python
+
+# Build the container image
+sam build
+
+# Deploy (first time — creates ECR repo, CloudFormation stack, API Gateway)
+sam deploy --guided
+# Subsequent deploys (uses saved samconfig.toml defaults)
+sam deploy
+```
+
+### Override parameters
+```bash
+sam deploy \
+  --parameter-overrides \
+    S3LogBucket=my-ecostream-logs \
+    DynamoDbTableName=ecostream-telemetry \
+    OrderServiceBaseUrl=https://orders.example.com
+```
+
+### What gets deployed
+| Resource | Purpose |
+|----------|---------|
+| **Lambda function** | Container image (`Dockerfile.lambda`) with FastAPI + Mangum, ML model, and all deps |
+| **HTTP API Gateway** | Routes all requests to the Lambda (catch-all `/{proxy+}`) with CORS |
+| **IAM role** | DynamoDB read, S3 put (forecast logs), Bedrock invoke |
+
+### Environment variables (set via SAM parameters or Lambda console)
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `EXECUTION_ENV` | `lambda` | Tells DynamoDB client to use real AWS (no endpoint override) |
+| `DYNAMODB_TABLE_NAME` | `ecostream-telemetry-local` | DynamoDB table for telemetry reads |
+| `S3_LOG_BUCKET` | *(empty)* | S3 bucket for forecast audit logs |
+| `S3_LOG_PREFIX` | `delivery-logs/forecasts` | Key prefix for forecast log objects |
+| `ORDER_SERVICE_BASE_URL` | *(empty)* | Order Service URL for assistant chat grounding |
+| `CORS_ALLOWED_ORIGINS` | *(empty)* | Comma-separated origins; empty = localhost defaults |
+
+### Building the Docker image manually
+```bash
+docker build -f Dockerfile.lambda -t ecostream-ai-lambda .
+```
+The image uses `public.ecr.aws/lambda/python:3.10`, installs deps, copies `app/` and `models/` (ML model artifact), and sets the handler to `app.main.handler`.
 
 ## Current Capabilities
 

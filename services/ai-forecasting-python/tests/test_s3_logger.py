@@ -2,7 +2,6 @@
 from unittest.mock import patch, MagicMock
 
 from app.services.forecasting_service import calculate_eta
-from app.utils.s3_logger import upload_forecast_log
 
 
 @patch("app.services.forecasting_service.upload_forecast_log")
