@@ -11,6 +11,8 @@ The Order Service is responsible for CRUD operations on orders and orchestration
 - **Libraries:**
   - Spring Data JPA (PostgreSQL)
   - AWS SDK (DynamoDB)
+  - Spring Boot Actuator (health, info, metrics)
+  - Resilience4j (circuit breaker on AI service calls)
   - Lombok (Boilerplate reduction)
   - JUnit 5 & Mockito (Testing)
 
@@ -89,9 +91,15 @@ The Order Service is responsible for CRUD operations on orders and orchestration
   - `ForecastingClient` calls `POST http://localhost:5050/api/forecast/{orderId}` (configurable via `ai.forecasting.base-url`) with destination and priority
   - Response DTO includes `distanceKm` and `estimatedArrivalMinutes` when AI service is available
   - Priority mapped to Express (priority ≥ 5) or Standard for ML speed prediction
-  - Resilient: on AI timeout or failure, order is still returned with null ETA (500ms timeout)
   - **Verified:** RestTemplate uses `BufferingClientHttpRequestFactory` so the POST body is sent reliably; dashboard shows Distance (km), ETA (min), and red live-tracking indicator for the order used in the simulation
+- ✅ **Resilience: Circuit Breaker + Actuator**
+  - `@CircuitBreaker(name = "forecastService")` on `ForecastingClientImpl.getForecast()` — after 5 failures in a sliding window of 10, the circuit opens and the fallback returns null (orders served without ETA, no wasted timeout)
+  - Auto-recovers via HALF_OPEN state after 10s wait, probing with 3 calls before closing
+  - Fallback logs a warning and returns null; `enrichWithForecast` already handles null gracefully
+  - Actuator endpoints: `GET /actuator/health` (includes circuit breaker state), `GET /actuator/info`, `GET /actuator/circuitbreakers`
+  - RestTemplate timeouts: 1s connect, 2s read (generous for happy-path; circuit breaker handles sustained failures)
 - ✅ **Test Coverage:** Comprehensive unit and integration tests using JUnit 5 and Mockito
+  - ForecastingClientCircuitBreakerTest: verifies fallback returns null, circuit opens after repeated failures, successful calls keep circuit closed
   - OrderServiceForecastingIntegrationTest: mocked AI client; resiliency test when AI fails
   - Controller, entity, and service tests as above
 

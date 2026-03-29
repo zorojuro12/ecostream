@@ -1,7 +1,7 @@
 # EcoStream Progress Tracker
 
 ## Current state (summary)
-- **Order Service (Java, 8082):** CRUD + telemetry ingestion to DynamoDB; calls AI service for ETA on GET order; RestTemplate sends forecast body reliably (buffering fix). **Cloud-ready:** DB config uses `${DB_URL}`, `${DB_USER}`, `${DB_PASSWORD}` (defaults: local Docker; override for RDS).
+- **Order Service (Java, 8082):** CRUD + telemetry ingestion to DynamoDB; calls AI service for ETA on GET order; RestTemplate sends forecast body reliably (buffering fix). **Resilience4j circuit breaker** on AI client (`forecastService`): opens after 50% failure rate in 10-call window, fallback returns null ETA, auto-recovers via HALF_OPEN. **Actuator:** `/actuator/health` (includes CB state), `/actuator/info`, `/actuator/circuitbreakers`. **Cloud-ready:** DB config uses `${DB_URL}`, `${DB_USER}`, `${DB_PASSWORD}` (defaults: local Docker; override for RDS).
 - **AI Forecasting Service (Python, 5050):** ETA via Haversine + **ML speed model** (RandomForest trained on NYC Taxi Trip Duration data; features: distance, hour, day-of-week, month, priority); `POST /api/forecast/{order_id}` for Java/dashboard; **Logistics Assistant** `POST /api/assistant/chat` — Bedrock (Claude 3.5 Haiku, us-east-1) with live distance/ETA grounding. **Cloud-ready:** DynamoDB client switches by `EXECUTION_ENV=lambda` (real AWS when Lambda); S3 logger utility exists but not yet wired; Mangum + Dockerfile.lambda.
 - **Dashboard:** Order list with Distance/ETA and red live-tracking indicator; **Live delivery map** (Leaflet.js on CARTO dark tiles) with vehicle/destination markers and route polyline, telemetry polled from Python service; **Logistics Assistant** floating chat (select order → ask context-aware questions; calls POST /api/assistant/chat).
 - **Status:** **Cloud Ready.** Microservices are environment-aware and align with the EcoStream specification (RDS, DynamoDB, S3, Lambda path).
@@ -48,6 +48,11 @@
 - [x] **End-to-end GenAI:** Dashboard Logistics Assistant chat box (floating bubble → dark chat window; select order, send message to Bedrock-backed assistant; auto-scroll, selection-aware placeholder).
 - [x] Setup GitHub Actions (CI/CD) — workflow triggers on push/PR to main; jobs: test-java-service (JDK 21, mvn clean test), test-python-service (Python 3.10, pytest). *(Partial: dashboard CI job and Ruff lint step not yet added.)*
 - [x] AWS Lambda migration — Mangum adapter in `app.main.handler`; `Dockerfile.lambda` (AWS Python 3.10 base image, CMD `app.main.handler`); service README documents Lambda Docker build.
+
+## Phase 4b: Resilience & Observability
+- [x] **VERIFIED:** Spring Boot Actuator — exposes `/actuator/health` (with circuit breaker state), `/actuator/info`, `/actuator/circuitbreakers`.
+- [x] **VERIFIED:** Resilience4j circuit breaker on `ForecastingClientImpl.getForecast()` — `@CircuitBreaker(name = "forecastService")` with fallback returning null. Config: slidingWindowSize=10, failureRateThreshold=50%, waitDurationInOpenState=10s, minimumNumberOfCalls=5. 3 new tests pass (fallback, circuit opens, success keeps closed). 19/19 total tests pass.
+- [x] RestTemplate timeouts adjusted from 500ms to 1s connect / 2s read — circuit breaker handles sustained failures at a higher level.
 
 ## Phase 5: Environment-aware / Cloud readiness
 - [x] **Java RDS config:** `application.properties` uses `${DB_URL}`, `${DB_USER}`, `${DB_PASSWORD}` with local Docker defaults; override for Amazon RDS.
