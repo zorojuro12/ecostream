@@ -90,7 +90,7 @@ The image uses the AWS base image `public.ecr.aws/lambda/python:3.10`, installs 
 
 ### Services
 - [x] DynamoDB Telemetry Reader (`app/services/telemetry_service.py`) - endpoint http://localhost:9000, `get_latest_telemetry(order_id)`
-- [x] Forecasting Service (`app/services/forecasting_service.py`): `calculate_eta(order_id, destination, priority)` - uses Haversine + ML speed
+- [x] Forecasting Service (`app/services/forecasting_service.py`): `calculate_eta(order_id, destination, priority)` - uses Haversine + ML speed; **logs every successful forecast to S3** via `upload_forecast_log()` (fire-and-forget; no-op when `S3_LOG_BUCKET` is unset)
 - [x] **Logistics Assistant** (`app/services/assistant_service.py`): grounds user questions with live distance/ETA, then calls Bedrock; identity + context in XML (`<context>Distance: Xkm, ETA: Ymin</context>`)
 
 ### API Endpoints
@@ -107,6 +107,7 @@ The image uses the AWS base image `public.ecr.aws/lambda/python:3.10`, installs 
 - [x] `tests/test_bedrock_client.py` - Bedrock Converse client (converse called, fallback on AccessDenied)
 - [x] `tests/test_assistant_service.py` - assistant chat with mocked ETA and get_ai_insight (data grounding)
 - [x] `tests/test_assistant_api.py` - POST /api/assistant/chat returns real reply when Bedrock mocked (not fallback)
+- [x] `tests/test_s3_logger.py` - S3 logger wiring (upload called on successful ETA, skipped on no telemetry, skipped when bucket unset)
 
 ### Pending
 - [ ] Additional integration tests if needed

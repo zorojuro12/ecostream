@@ -1,21 +1,21 @@
 # EcoStream Session State
 
 ## Last Updated
-2026-03-29 — Implemented Actuator + Resilience4j circuit breaker (Priority #4)
+2026-03-29 — Wired S3 logger into forecast flow (Priority #5)
 
 ## Priority List (Interview Readiness)
 
 ### Active / Remaining
 | # | Task | Status | Est. Time |
 |---|------|--------|-----------|
-| 5 | Wire S3 logger into forecast flow | **NEXT** | 15-30 min |
-| 6 | Deploy AI service to real Lambda (minimal SAM) | PENDING | 2-3 hrs |
+| 6 | Deploy AI service to real Lambda (minimal SAM) | **NEXT** | 2-3 hrs |
 | 7 | Add dashboard to CI + component tests | PENDING | 1-2 hrs |
 | 8 | Structured JSON logging (Python) | PENDING | 1 hr |
 
 ### Completed
 | # | Task | Date |
 |---|------|------|
+| 5 | Wire S3 logger into forecast flow | 2026-03-29 |
 | 4 | Spring Boot Actuator + Resilience4j circuit breaker | 2026-03-29 |
 | 3 | Live delivery map (Leaflet.js) | 2025-03-25 |
 | 2 | Train real ML model on NYC Taxi data | 2025-03-25 |
@@ -36,8 +36,8 @@
 
 ## Active Context
 - **Branch:** `feat/cloud-readiness`
-- **Just completed:** Priority #4 — Resilience4j `@CircuitBreaker` on `ForecastingClientImpl.getForecast()` with null fallback; Spring Boot Actuator exposing `/actuator/health` (CB state), `/actuator/info`, `/actuator/circuitbreakers`. 19/19 Java tests pass.
-- **Up next:** Priority #5 — Wire S3 logger into forecast flow.
+- **Just completed:** Priority #5 — Wired `upload_forecast_log()` into `calculate_eta()`. Every successful forecast is durably logged to S3 (fire-and-forget, no-op when `S3_LOG_BUCKET` is empty). 3 new tests, 17/17 Python tests pass.
+- **Up next:** Priority #6 — Deploy AI service to real Lambda (minimal SAM).
 
 ## Key Decisions Made
 - **Circuit breaker config:** Count-based sliding window (size=10, threshold=50%, min calls=5) — request volume is low so time-based would need higher traffic. 10s wait in OPEN, 3 probes in HALF_OPEN.
@@ -49,12 +49,13 @@
 - **Time features from server:** hour_of_day, day_of_week, month from `datetime.now()`, not from request.
 - **Map telemetry source:** Option B (dashboard fetches from Python service directly) — avoids Java DTO changes.
 
-## Files Recently Modified (Circuit Breaker)
-- `services/order-service-java/pom.xml` (added actuator, resilience4j-spring-boot3, spring-boot-starter-aop)
-- `services/order-service-java/src/main/resources/application.properties` (actuator + CB config)
-- `services/order-service-java/src/main/java/com/ecostream/order/client/ForecastingClientImpl.java` (@CircuitBreaker + fallback)
-- `services/order-service-java/src/main/java/com/ecostream/order/config/RestTemplateConfig.java` (timeout 500ms → 1s/2s)
-- `services/order-service-java/src/test/java/com/ecostream/order/client/ForecastingClientCircuitBreakerTest.java` (new — 3 tests)
+## Files Recently Modified (S3 Logger Wiring)
+- `services/ai-forecasting-python/app/services/forecasting_service.py` (import + call `upload_forecast_log`)
+- `services/ai-forecasting-python/.env` (added `S3_LOG_BUCKET`, `S3_LOG_PREFIX`)
+- `services/ai-forecasting-python/tests/test_s3_logger.py` (new — 3 tests)
+- `services/ai-forecasting-python/README.md` (S3 logging in Services + Testing sections)
+- `progress.md` (S3 logger marked verified)
+- `SESSION.md` (this file)
 
 ## Tradeoffs & Deferred Alternatives
 | Decision | What We Chose | Alternative | Why Deferred |
