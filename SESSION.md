@@ -1,19 +1,19 @@
 # EcoStream Session State
 
 ## Last Updated
-2026-03-29 — SAM template for Lambda deployment (Priority #6)
+2026-03-29 — Dashboard CI + component tests (Priority #7)
 
 ## Priority List (Interview Readiness)
 
 ### Active / Remaining
 | # | Task | Status | Est. Time |
 |---|------|--------|-----------|
-| 7 | Add dashboard to CI + component tests | **NEXT** | 1-2 hrs |
-| 8 | Structured JSON logging (Python) | PENDING | 1 hr |
+| 8 | Structured JSON logging (Python) | **NEXT** | 1 hr |
 
 ### Completed
 | # | Task | Date |
 |---|------|------|
+| 7 | Add dashboard to CI + component tests | 2026-03-29 |
 | 6 | Deploy AI service to real Lambda (minimal SAM) | 2026-03-29 |
 | 5 | Wire S3 logger into forecast flow | 2026-03-29 |
 | 4 | Spring Boot Actuator + Resilience4j circuit breaker | 2026-03-29 |
@@ -36,8 +36,8 @@
 
 ## Active Context
 - **Branch:** `feat/cloud-readiness`
-- **Just completed:** Priority #6 — SAM template for Lambda deployment. Created `template.yaml` (Lambda container image + HTTP API Gateway + IAM for DynamoDB/S3/Bedrock), `samconfig.toml`, deploy script, updated Dockerfile to include ML model, and made CORS env-configurable. 17/17 Python tests pass.
-- **Up next:** Priority #7 — Add dashboard to CI + component tests.
+- **Just completed:** Priority #7 — Dashboard CI + component tests. 13 tests (OrderList, AssistantChat, assistantClient, orderClient). Fixed pre-existing TS errors. Added dashboard job to CI (Node 20, build + vitest).
+- **Up next:** Priority #8 — Structured JSON logging (Python).
 
 ## Key Decisions Made
 - **Circuit breaker config:** Count-based sliding window (size=10, threshold=50%, min calls=5) — request volume is low so time-based would need higher traffic. 10s wait in OPEN, 3 probes in HALF_OPEN.
@@ -49,15 +49,16 @@
 - **Time features from server:** hour_of_day, day_of_week, month from `datetime.now()`, not from request.
 - **Map telemetry source:** Option B (dashboard fetches from Python service directly) — avoids Java DTO changes.
 
-## Files Recently Modified (SAM Lambda Deployment)
-- `services/ai-forecasting-python/template.yaml` (new — SAM template: Lambda + API Gateway + IAM)
-- `services/ai-forecasting-python/samconfig.toml` (new — SAM deployment defaults)
-- `services/ai-forecasting-python/scripts/deploy-lambda.sh` (new — one-command deploy script)
-- `services/ai-forecasting-python/Dockerfile.lambda` (added `COPY models ./models`)
-- `services/ai-forecasting-python/app/main.py` (env-configurable CORS origins)
-- `services/ai-forecasting-python/README.md` (SAM deployment section)
-- `progress.md` (SAM Lambda marked verified)
-- `SESSION.md` (this file)
+## Files Recently Modified (Dashboard CI + Tests)
+- `services/web-dashboard-ts/src/components/OrderList.test.tsx` (new — 5 tests)
+- `services/web-dashboard-ts/src/components/AssistantChat.test.tsx` (new — 5 tests)
+- `services/web-dashboard-ts/src/api/assistantClient.test.ts` (new — 2 tests)
+- `services/web-dashboard-ts/src/test/setup.ts` (scrollIntoView polyfill)
+- `services/web-dashboard-ts/vite.config.ts` (vitest type reference)
+- `services/web-dashboard-ts/src/components/AssistantChat.tsx` (ref type fix)
+- `services/web-dashboard-ts/src/components/DeliveryMap.tsx` (Leaflet cast fix)
+- `.github/workflows/ci.yml` (added test-dashboard job)
+- `progress.md`, `SESSION.md`
 
 ## Tradeoffs & Deferred Alternatives
 | Decision | What We Chose | Alternative | Why Deferred |

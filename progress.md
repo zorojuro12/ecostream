@@ -46,7 +46,7 @@
 - [x] Real-time telemetry visualization (live polling, movement simulator, blinking pulse when ETA + auto-refresh).
 - [x] **VERIFIED:** Live delivery map — Leaflet.js `DeliveryMap` component with CARTO dark tiles, vehicle (green) + destination (blue) markers, dashed route polyline. Dashboard fetches telemetry directly from Python service (`GET /api/test/telemetry/{orderId}`) with 5-second polling. Vite build passes, 1/1 tests pass.
 - [x] **End-to-end GenAI:** Dashboard Logistics Assistant chat box (floating bubble → dark chat window; select order, send message to Bedrock-backed assistant; auto-scroll, selection-aware placeholder).
-- [x] Setup GitHub Actions (CI/CD) — workflow triggers on push/PR to main; jobs: test-java-service (JDK 21, mvn clean test), test-python-service (Python 3.10, pytest). *(Partial: dashboard CI job and Ruff lint step not yet added.)*
+- [x] **VERIFIED:** GitHub Actions CI — 3 jobs: test-java-service (JDK 21, mvn), test-python-service (Python 3.10, pytest), test-dashboard (Node 20, tsc + vite build + vitest). 13 dashboard tests, 17 Python tests, 19 Java tests.
 - [x] AWS Lambda migration — Mangum adapter in `app.main.handler`; `Dockerfile.lambda` (AWS Python 3.10 base image, CMD `app.main.handler`); service README documents Lambda Docker build.
 
 ## Phase 4b: Resilience & Observability
