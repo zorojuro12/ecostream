@@ -1,0 +1,16 @@
+version = 0.1
+
+[default.deploy.parameters]
+stack_name = "ecostream-ai-forecasting"
+resolve_s3 = true
+resolve_image_repos = true
+s3_prefix = "ecostream-ai-forecasting"
+region = "us-east-1"
+capabilities = "CAPABILITY_IAM"
+confirm_changeset = true
+image_repository = ""
+# Override image_repository with your ECR URI:
+#   sam deploy --image-repository 123456789012.dkr.ecr.us-east-1.amazonaws.com/ecostream-ai
+
+[default.build.parameters]
+use_container = false

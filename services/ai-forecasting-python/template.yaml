@@ -1,0 +1,101 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  EcoStream AI Forecasting Service — Lambda (container image) behind API Gateway HTTP API.
+  Provides ETA forecasting, telemetry lookup, and Bedrock-backed Logistics Assistant.
+
+Parameters:
+  StageName:
+    Type: String
+    Default: prod
+    AllowedValues: [dev, staging, prod]
+  DynamoDbTableName:
+    Type: String
+    Default: ecostream-telemetry-local
+  S3LogBucket:
+    Type: String
+    Default: ""
+    Description: S3 bucket for forecast audit logs (empty = disabled)
+  S3LogPrefix:
+    Type: String
+    Default: delivery-logs/forecasts
+  OrderServiceBaseUrl:
+    Type: String
+    Default: ""
+    Description: Base URL of the Order Service (for assistant chat grounding)
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 512
+
+Resources:
+  AiForecastingFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      DockerTag: latest
+      DockerContext: .
+      Dockerfile: Dockerfile.lambda
+    Properties:
+      PackageType: Image
+      Architectures: [x86_64]
+      Environment:
+        Variables:
+          EXECUTION_ENV: lambda
+          REGION: us-east-1
+          DYNAMODB_TABLE_NAME: !Ref DynamoDbTableName
+          S3_LOG_BUCKET: !Ref S3LogBucket
+          S3_LOG_PREFIX: !Ref S3LogPrefix
+          ORDER_SERVICE_BASE_URL: !Ref OrderServiceBaseUrl
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref DynamoDbTableName
+        - Statement:
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+              Resource: "arn:aws:bedrock:us-east-1::foundation-model/*"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - s3:PutObject
+              Resource: !Sub "arn:aws:s3:::${S3LogBucket}/*"
+              Condition:
+                StringNotEquals:
+                  aws:ResourceAccount: "000000000000"
+      Events:
+        CatchAll:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /{proxy+}
+            Method: ANY
+        Root:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /
+            Method: ANY
+
+  HttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: !Ref StageName
+      CorsConfiguration:
+        AllowOrigins:
+          - "*"
+        AllowHeaders:
+          - Content-Type
+          - Authorization
+        AllowMethods:
+          - GET
+          - POST
+          - OPTIONS
+
+Outputs:
+  ApiEndpoint:
+    Description: API Gateway endpoint URL
+    Value: !Sub "https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com/${StageName}"
+  FunctionArn:
+    Description: Lambda function ARN
+    Value: !GetAtt AiForecastingFunction.Arn

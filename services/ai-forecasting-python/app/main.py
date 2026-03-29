@@ -17,6 +17,16 @@ load_dotenv(dotenv_path=env_path)
 
 logger = logging.getLogger(__name__)
 
+_DEFAULT_ORIGINS = ["http://localhost:5173", "http://127.0.0.1:5173"]
+
+
+def _allowed_origins() -> list[str]:
+    """Build CORS allow-origins list from env, falling back to localhost dev defaults."""
+    extra = os.getenv("CORS_ALLOWED_ORIGINS", "")
+    origins = [o.strip() for o in extra.split(",") if o.strip()] if extra else []
+    return origins or _DEFAULT_ORIGINS
+
+
 app = FastAPI(
     title="EcoStream AI Forecasting Service",
     description="Delay prediction and route analysis using GenAI",
@@ -25,7 +35,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=_allowed_origins(),
     allow_credentials=True,
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],

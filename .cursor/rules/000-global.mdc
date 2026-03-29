@@ -29,12 +29,14 @@ alwaysApply: true
 - **Cleanup:** After resolving a debugging session, remove all temporary logging, file writes, and debug instrumentation before committing.
 
 ## 5. Git Strategy (Atomic Commits)
-- **Frequency:** Commit every time a single logical "win" is achieved (e.g., a new test passes, a model is defined, or a config is updated).
+- **Frequency:** Commit every time a single logical "win" is achieved (e.g., a new test passes, a model is defined, or a config is updated). Do NOT batch multiple wins into one commit. Do NOT defer commits to the end of a task.
 - **Format:** Use Conventional Commits: `type(scope): description`.
   - **Types:** `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`.
   - **Scopes:** `order`, `ai`, `infra`, `ui`, `global`.
-- **Checkpoint Rule:** The AI must suggest a specific git commit command after every successful execution that passes a test or lint check.
-- **Micro-Commit Rule** If a task involves multiple files or layers (e.g., a Test, then a Service, then a Controller), you must pause and suggest a commit after each layer is verified. Never combine logic changes and documentation/cleanup into a single commit.
+  - **Length limit:** The commit message subject line (first line) MUST be ≤120 characters. No exceptions. If it doesn't fit, shorten it.
+- **Checkpoint Rule:** The AI MUST run `git add` + `git commit` immediately after every successful test run or lint check. Do not wait for the user to ask. Do not continue to the next sub-task before committing the current one.
+- **Micro-Commit Rule:** If a task involves multiple files or layers (e.g., a Test, then a Service, then a Controller), you must commit after each layer is verified. Never combine logic changes and documentation/cleanup into a single commit.
+- **End-of-Task Gate:** Before marking any to-do as fully complete, verify that all changes for that to-do have been committed. If not, commit them first.
 
 # 6. Infrastructure Guardrails
 - **Ports:** Order Service: **8082** | AI Service: **5050** | Postgres: **5432** | DynamoDB: **9000**.
