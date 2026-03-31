@@ -179,14 +179,15 @@ CI workflow (`.github/workflows/ci.yml`) triggers on push/PR to `main`:
 |-----|-------|
 | **test-java-service** | JDK 21 (Temurin), `mvn clean test -B` |
 | **test-python-service** | Python 3.10, `pip install -r requirements.txt`, `pytest -v` |
+| **test-dashboard** | Node.js 20, `npm ci`, `tsc -b && vite build`, `vitest run` |
 
-*Remaining:* Dashboard CI job (Vite build + Vitest) and Ruff lint step not yet added.
-
-### Lambda Readiness (AI Service)
+### Lambda Deployment (AI Service — SAM)
 
 - **Mangum adapter** in `app.main.handler` wraps FastAPI for Lambda.
-- **`Dockerfile.lambda`** uses `public.ecr.aws/lambda/python:3.10` base image, installs deps, sets handler to `app.main.handler`.
-- Push to ECR and configure Lambda function to use the image.
+- **`Dockerfile.lambda`** uses `public.ecr.aws/lambda/python:3.10` base image, installs deps, copies `app/` and `models/` (ML artifact), sets handler to `app.main.handler`.
+- **`template.yaml`** (SAM): Lambda function (container image), HTTP API Gateway with CORS, IAM policies (DynamoDB read, S3 put, Bedrock invoke). Parameters for table name, S3 bucket, Order Service URL.
+- **`samconfig.toml`**: Deployment defaults (stack name, region, capabilities).
+- **Deploy:** `sam build && sam deploy` or `./scripts/deploy-lambda.sh`.
 
 ### Local DevOps
 
@@ -201,7 +202,7 @@ CI workflow (`.github/workflows/ci.yml`) triggers on push/PR to `main`:
 | Service | Framework | Approach | Current Count |
 |---------|-----------|----------|---------------|
 | **Order Service (Java)** | JUnit 5, Mockito | Controller/Service/Repository unit tests; `MockRestServiceServer` for HTTP client tests; manual `CircuitBreakerRegistry` for CB tests (no full Spring context needed) | 19 tests |
-| **AI Service (Python)** | Pytest | Engine unit tests (Haversine, ML model features); service tests with mocked DynamoDB/Bedrock/S3; API integration tests with `TestClient` | 17 tests |
-| **Dashboard (TS)** | Vitest | Component rendering (basic). | 1 test |
+| **AI Service (Python)** | Pytest | Engine unit tests (Haversine, ML model features); service tests with mocked DynamoDB/Bedrock/S3; API integration tests with `TestClient`; JSON log formatter | 19 tests |
+| **Dashboard (TS)** | Vitest, Testing Library | OrderList (rendering, selection, empty state, live pulse), AssistantChat (open/close, send/receive, error), API clients (orderClient, assistantClient) | 13 tests |
 
 TDD workflow: Red (failing test) → Green (minimal implementation) → Refactor. Moto / `unittest.mock` for AWS service mocking in Python; Mockito for Java.
