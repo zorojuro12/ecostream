@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* Green-tint for vehicle marker on the delivery map */
+.leaflet-marker-vehicle {
+  filter: hue-rotate(120deg) saturate(1.5);
+}
+
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;

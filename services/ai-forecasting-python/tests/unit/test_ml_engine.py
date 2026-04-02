@@ -1,44 +1,87 @@
 """
-Unit tests for the ML-based speed prediction engine.
-Asserts priority-based travel time: Express = faster, Standard = slower.
+Unit tests for the multi-feature delivery speed prediction engine.
+
+Tests both the trained model path and the heuristic fallback, verifying
+that time-of-day and priority produce expected speed relationships.
 """
+from unittest.mock import MagicMock, patch
 
-from app.engine.model_loader import predict_speed
-
-
-def test_priority_based_travel_time_express_faster_than_standard():
-    """
-    Assert that the forecaster can predict travel time based on distance AND priority:
-    Express = faster speed (60 km/h), Standard = slower speed (30 km/h).
-    Travel time (minutes) = (distance_km / speed_kmh) * 60.
-    """
-    speed_express = predict_speed("Express")
-    speed_standard = predict_speed("Standard")
-
-    assert speed_express == 60.0, "Express priority should yield 60 km/h"
-    assert speed_standard == 30.0, "Standard priority should yield 30 km/h"
-
-    distance_km = 60.0
-    travel_time_express_min = (distance_km / speed_express) * 60
-    travel_time_standard_min = (distance_km / speed_standard) * 60
-
-    assert travel_time_express_min == 60.0, "60 km at 60 km/h = 60 minutes"
-    assert travel_time_standard_min == 120.0, "60 km at 30 km/h = 120 minutes"
-    assert travel_time_express_min < travel_time_standard_min, "Express should be faster than Standard"
+import app.engine.model_loader as ml
 
 
-def test_priority_based_speed_with_mocked_joblib_model():
-    """
-    Mock a joblib model and assert predict_speed uses it: Express -> 60, Standard -> 30.
-    """
-    from unittest.mock import patch, MagicMock
+class TestPredictSpeedWithModel:
+    """Tests when the trained .joblib model is available."""
 
-    mock_model = MagicMock()
-    mock_model.predict.side_effect = lambda x: 60.0 if x == "Express" else 30.0
+    def test_express_faster_than_standard_at_same_time(self):
+        speed_express = ml.predict_speed(
+            distance_km=5.0, hour_of_day=8, day_of_week=2, month=3, priority="Express",
+        )
+        speed_standard = ml.predict_speed(
+            distance_km=5.0, hour_of_day=8, day_of_week=2, month=3, priority="Standard",
+        )
+        assert speed_express > speed_standard, (
+            f"Express ({speed_express:.1f}) should be faster than Standard ({speed_standard:.1f})"
+        )
 
-    import app.engine.model_loader as ml
+    def test_offpeak_faster_than_rush_hour(self):
+        rush = ml.predict_speed(
+            distance_km=5.0, hour_of_day=8, day_of_week=2, month=3, priority="Standard",
+        )
+        offpeak = ml.predict_speed(
+            distance_km=5.0, hour_of_day=2, day_of_week=2, month=3, priority="Standard",
+        )
+        assert offpeak > rush, (
+            f"Off-peak 2am ({offpeak:.1f}) should be faster than rush 8am ({rush:.1f})"
+        )
 
-    with patch.object(ml, "_model", mock_model):
-        assert ml.predict_speed("Express") == 60.0
-        assert ml.predict_speed("Standard") == 30.0
-        assert mock_model.predict.call_count >= 2
+    def test_returns_positive_float(self):
+        speed = ml.predict_speed(
+            distance_km=10.0, hour_of_day=14, day_of_week=4, month=6, priority="Standard",
+        )
+        assert isinstance(speed, float)
+        assert speed > 0
+
+    def test_model_used_when_loaded(self):
+        mock_model = MagicMock()
+        mock_model.predict.return_value = 18.5
+
+        with patch.object(ml, "_model", mock_model):
+            result = ml.predict_speed(
+                distance_km=5.0, hour_of_day=8, day_of_week=2, month=3, priority="Standard",
+            )
+
+        mock_model.predict.assert_called_once_with(
+            distance_km=5.0, hour_of_day=8, day_of_week=2, month=3, priority="Standard",
+        )
+        assert result == 18.5
+
+
+class TestPredictSpeedHeuristicFallback:
+    """Tests the fallback when no .joblib model is loaded."""
+
+    def test_rush_hour_slower_than_offpeak(self):
+        with patch.object(ml, "_model", None):
+            rush = ml.predict_speed(
+                distance_km=5.0, hour_of_day=8, day_of_week=2, month=3, priority="Standard",
+            )
+            night = ml.predict_speed(
+                distance_km=5.0, hour_of_day=2, day_of_week=2, month=3, priority="Standard",
+            )
+        assert night > rush
+
+    def test_express_faster_than_standard_in_fallback(self):
+        with patch.object(ml, "_model", None):
+            express = ml.predict_speed(
+                distance_km=5.0, hour_of_day=14, day_of_week=2, month=3, priority="Express",
+            )
+            standard = ml.predict_speed(
+                distance_km=5.0, hour_of_day=14, day_of_week=2, month=3, priority="Standard",
+            )
+        assert express > standard
+
+    def test_fallback_returns_positive(self):
+        with patch.object(ml, "_model", None):
+            speed = ml.predict_speed(
+                distance_km=3.0, hour_of_day=12, day_of_week=0, month=1, priority="Standard",
+            )
+        assert speed > 0

@@ -1,10 +1,10 @@
 # EcoStream Progress Tracker
 
 ## Current state (summary)
-- **Order Service (Java, 8082):** CRUD + telemetry ingestion to DynamoDB; calls AI service for ETA on GET order; RestTemplate sends forecast body reliably (buffering fix).
-- **AI Forecasting Service (Python, 5050):** ETA via Haversine + ML speed; `POST /api/forecast/{order_id}` for Java/dashboard; **Logistics Assistant** `POST /api/assistant/chat` — Bedrock (Claude 3.5 Haiku, us-east-1) with live distance/ETA grounding; real replies when AWS credentials in `.env`, fallback otherwise.
-- **Dashboard:** Order list with Distance/ETA and red live-tracking indicator; simulation writes telemetry to DynamoDB; **Logistics Assistant** floating chat (select order → ask context-aware questions; calls POST /api/assistant/chat).
-- **Remaining:** None (Lambda-ready; Mangum + Dockerfile.lambda in place).
+- **Order Service (Java, 8082):** CRUD + telemetry ingestion to DynamoDB; calls AI service for ETA on GET order; RestTemplate sends forecast body reliably (buffering fix). **Resilience4j circuit breaker** on AI client (`forecastService`): opens after 50% failure rate in 10-call window, fallback returns null ETA, auto-recovers via HALF_OPEN. **Actuator:** `/actuator/health` (includes CB state), `/actuator/info`, `/actuator/circuitbreakers`. **Cloud-ready:** DB config uses `${DB_URL}`, `${DB_USER}`, `${DB_PASSWORD}` (defaults: local Docker; override for RDS).
+- **AI Forecasting Service (Python, 5050):** ETA via Haversine + **ML speed model** (RandomForest trained on NYC Taxi Trip Duration data; features: distance, hour, day-of-week, month, priority); `POST /api/forecast/{order_id}` for Java/dashboard; **Logistics Assistant** `POST /api/assistant/chat` — Bedrock (Claude 3.5 Haiku, us-east-1) with live distance/ETA grounding. **S3 forecast logging** wired — every successful ETA is logged to S3 (fire-and-forget, no-op locally). **Cloud-ready:** DynamoDB client switches by `EXECUTION_ENV=lambda` (real AWS when Lambda); Mangum + Dockerfile.lambda.
+- **Dashboard:** Order list with Distance/ETA and red live-tracking indicator; **Live delivery map** (Leaflet.js on CARTO dark tiles) with vehicle/destination markers and route polyline, telemetry polled from Python service; **Logistics Assistant** floating chat (select order → ask context-aware questions; calls POST /api/assistant/chat).
+- **Status:** **Cloud Ready.** Microservices are environment-aware and align with the EcoStream specification (RDS, DynamoDB, S3, Lambda path).
 
 ## Phase 1: Foundation (Scaffolding & Infrastructure)
 - [x] Create project directory structure.
@@ -35,7 +35,7 @@
 - [x] **VERIFIED:** Haversine distance engine tested with SFU campuses (13.72 km accuracy).
 - [x] **VERIFIED:** Base forecasting service with constant speed (40 km/h) placeholder.
 - [x] **VERIFIED:** Forecasting API endpoint (`POST /api/forecast/{order_id}`) functional.
-- [x] Integrate Scikit-Learn model for delay prediction.
+- [x] **VERIFIED:** Scikit-Learn delivery speed model trained on NYC Taxi Trip Duration dataset (Kaggle). RandomForest pipeline with 5 features (distance_km, hour_of_day, day_of_week, month, priority). Evaluation: MAE 4.24 km/h, R² 0.45. Committed model artifact (`models/speed_model.joblib`) and processed training data (`data/training_data.csv`, 20k rows). 14/14 tests pass.
 - [x] Connect Java Order Service to Python AI Service.
 - [x] **VERIFIED:** Forecast POST body fix — Order Service uses `BufferingClientHttpRequestFactory` so the JSON body is sent reliably to the AI service (Spring 6.1.x default could set Content-Length but not write body bytes). Dashboard now shows Distance (km), ETA (min), and red live-tracking indicator for orders when simulation runs.
 
@@ -44,6 +44,20 @@
 - [x] **VERIFIED:** Logistics Assistant returns real Bedrock replies when AWS credentials are set in `.env`; `get_bedrock_client()` loads .env (service + repo root) so the running app has the same credentials as `scripts/aws-test.py`.
 - [x] Initialize TypeScript/React Dashboard (Vite, Vitest, Tailwind, Order List with ETA, Refresh, loading/error states).
 - [x] Real-time telemetry visualization (live polling, movement simulator, blinking pulse when ETA + auto-refresh).
+- [x] **VERIFIED:** Live delivery map — Leaflet.js `DeliveryMap` component with CARTO dark tiles, vehicle (green) + destination (blue) markers, dashed route polyline. Dashboard fetches telemetry directly from Python service (`GET /api/test/telemetry/{orderId}`) with 5-second polling. Vite build passes, 1/1 tests pass.
 - [x] **End-to-end GenAI:** Dashboard Logistics Assistant chat box (floating bubble → dark chat window; select order, send message to Bedrock-backed assistant; auto-scroll, selection-aware placeholder).
-- [x] Setup GitHub Actions (CI/CD) — workflow triggers on push/PR to main; jobs: test-java-service (JDK 21, mvn clean test), test-python-service (Python 3.10, pytest).
+- [x] **VERIFIED:** GitHub Actions CI — 3 jobs: test-java-service (JDK 21, mvn), test-python-service (Python 3.10, pytest), test-dashboard (Node 20, tsc + vite build + vitest). 13 dashboard tests, 17 Python tests, 19 Java tests.
 - [x] AWS Lambda migration — Mangum adapter in `app.main.handler`; `Dockerfile.lambda` (AWS Python 3.10 base image, CMD `app.main.handler`); service README documents Lambda Docker build.
+
+## Phase 4b: Resilience & Observability
+- [x] **VERIFIED:** Spring Boot Actuator — exposes `/actuator/health` (with circuit breaker state), `/actuator/info`, `/actuator/circuitbreakers`.
+- [x] **VERIFIED:** Resilience4j circuit breaker on `ForecastingClientImpl.getForecast()` — `@CircuitBreaker(name = "forecastService")` with fallback returning null. Config: slidingWindowSize=10, failureRateThreshold=50%, waitDurationInOpenState=10s, minimumNumberOfCalls=5. 3 new tests pass (fallback, circuit opens, success keeps closed). 19/19 total tests pass.
+- [x] RestTemplate timeouts adjusted from 500ms to 1s connect / 2s read — circuit breaker handles sustained failures at a higher level.
+
+## Phase 5: Environment-aware / Cloud readiness
+- [x] **Java RDS config:** `application.properties` uses `${DB_URL}`, `${DB_USER}`, `${DB_PASSWORD}` with local Docker defaults; override for Amazon RDS.
+- [x] **Python DynamoDB:** Client checks `EXECUTION_ENV=lambda`; when set, connects to real AWS DynamoDB (no endpoint override); otherwise uses DynamoDB Local.
+- [x] **VERIFIED:** S3 forecast logging — `upload_forecast_log()` called from `calculate_eta()` after every successful ETA computation. Fire-and-forget: no-op when `S3_LOG_BUCKET` is empty (local dev), logs to `delivery-logs/forecasts/{order_id}_{timestamp}.json` when set. 3 new tests (wiring + standalone). 17/17 Python tests pass.
+- [x] **Spec alignment:** Project is Cloud Ready; Order Service → RDS, AI Service → Lambda + DynamoDB + S3 logs, per EcoStream technical specification.
+- [x] **VERIFIED:** SAM template for Lambda deployment — `template.yaml` defines Lambda (container image), HTTP API Gateway with CORS, IAM policies (DynamoDB read, S3 put, Bedrock invoke). `samconfig.toml` for deployment defaults. `Dockerfile.lambda` copies `models/` for ML artifact. CORS origins env-configurable (`CORS_ALLOWED_ORIGINS`). Deploy script `scripts/deploy-lambda.sh`. 17/17 Python tests pass.
+- [x] **VERIFIED:** Structured JSON logging — `JsonFormatter` outputs single-line JSON (`timestamp`, `level`, `logger`, `message`, optional `exception`). Configured at startup via `configure_logging()`. `LOG_LEVEL` env-configurable (default INFO). 2 new tests, 19/19 Python tests pass.

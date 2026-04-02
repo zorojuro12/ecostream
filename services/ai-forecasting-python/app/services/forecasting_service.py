@@ -1,13 +1,17 @@
 """
-Forecasting Service
-Orchestrates telemetry retrieval and ETA calculation using ML-predicted speed.
+Forecasting Service — orchestrates telemetry retrieval and ETA calculation.
+
+Uses the trained ML model (or heuristic fallback) to predict delivery speed
+based on distance, time-of-day, day-of-week, month, and order priority.
 """
 import logging
+from datetime import datetime, timezone
 from typing import Optional
 
 from app.engine.forecaster import calculate_haversine_distance
 from app.engine.model_loader import predict_speed
 from app.services.telemetry_service import get_latest_telemetry
+from app.utils.s3_logger import upload_forecast_log
 
 logger = logging.getLogger(__name__)
 
@@ -18,19 +22,15 @@ def calculate_eta(
     destination_longitude: float,
     priority: str = "Standard",
 ) -> Optional[dict]:
-    """
-    Calculate Estimated Time of Arrival (ETA) for an order.
+    """Calculate Estimated Time of Arrival for an order.
 
-    Uses ML-predicted speed from priority (Express = faster, Standard = slower).
-
-    Args:
-        order_id: The order ID to calculate ETA for
-        destination_latitude: Destination latitude coordinate
-        destination_longitude: Destination longitude coordinate
-        priority: Order priority for speed prediction (Express or Standard)
+    Fetches the latest telemetry position, computes Haversine distance to
+    destination, then predicts delivery speed using the ML model with
+    time-of-day context.
 
     Returns:
-        Dictionary with 'distance_km' and 'estimated_arrival_minutes', or None if telemetry not found
+        Dict with 'distance_km' and 'estimated_arrival_minutes', or None
+        if no telemetry exists for the order.
     """
     current_location = get_latest_telemetry(order_id)
 
@@ -45,18 +45,32 @@ def calculate_eta(
         lon2=destination_longitude,
     )
 
-    speed_kmh = predict_speed(priority)
-    estimated_arrival_hours = distance_km / speed_kmh
-    estimated_arrival_minutes = estimated_arrival_hours * 60
+    now = datetime.now(timezone.utc)
+    speed_kmh = predict_speed(
+        distance_km=distance_km,
+        hour_of_day=now.hour,
+        day_of_week=now.weekday(),
+        month=now.month,
+        priority=priority,
+    )
+
+    if speed_kmh <= 0:
+        logger.error("Model returned non-positive speed (%.2f) for orderId %s", speed_kmh, order_id)
+        speed_kmh = 10.0
+
+    estimated_arrival_minutes = (distance_km / speed_kmh) * 60
 
     logger.info(
-        "ETA calculated for orderId %s: %s km, %s minutes (priority=%s, speed=%s km/h)",
+        "ETA calculated for orderId %s: %.2f km, %.1f min (priority=%s, speed=%.1f km/h, hour=%d)",
         order_id,
-        f"{distance_km:.2f}",
-        f"{estimated_arrival_minutes:.1f}",
+        distance_km,
+        estimated_arrival_minutes,
         priority,
         speed_kmh,
+        now.hour,
     )
+
+    upload_forecast_log(order_id, distance_km, estimated_arrival_minutes, priority)
 
     return {
         "distance_km": round(distance_km, 2),

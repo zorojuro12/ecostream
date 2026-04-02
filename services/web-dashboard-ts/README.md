@@ -2,6 +2,11 @@
 
 React + TypeScript + Vite dashboard for EcoStream order and ETA visibility.
 
+## Current Capabilities
+- **Order list** with Distance (km), ETA (min), and red live-tracking pulse.
+- **Live delivery map** (Leaflet.js) — select an order to see a dark-themed CARTO map with vehicle marker (green), destination marker (blue), and dashed route line. Telemetry is polled from the Python AI service every 5 seconds.
+- **Logistics Assistant** floating chat — select an order, ask context-aware questions backed by Amazon Bedrock (Claude 3.5 Haiku).
+
 ## Live tracking verification
 
 With Order Service (8082), AI Service (5050), and DynamoDB Local running:
@@ -9,7 +14,8 @@ With Order Service (8082), AI Service (5050), and DynamoDB Local running:
 1. Run `npm run dev` and open http://localhost:5173.
 2. Enable **Auto-refresh (5s)** and ensure at least one order has telemetry and ETA.
 3. Confirm the **blinking red pulse** appears next to "Distance (km)" when live tracking is active.
-4. Run `python scripts/simulate_movement.py` (from repo root); Distance and ETA should update every 5 seconds as the simulator posts telemetry.
+4. Click on an order row — the **delivery map** should appear below the order list showing the destination marker.
+5. Run `python scripts/simulate_movement.py` (from repo root); the vehicle marker should appear and move toward the destination every 5 seconds. Distance and ETA update alongside.
 
 ---
 

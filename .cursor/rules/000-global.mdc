@@ -7,8 +7,9 @@ alwaysApply: true
 # Global Standards
 
 ## 1. Orchestration & State Management
-- **Source of Truth:** Before every task, read `spec.md` for technical requirements and `progress.md` for current project state.
+- **Source of Truth:** Before every task, read `spec.md` for technical requirements, `progress.md` for feature-level state, and `SESSION.md` for current session context (active task, remaining steps, recent decisions).
 - **State Updates:** Upon completing and verifying a feature, immediately update `progress.md` with a `[x]` and update the "Current State" section in the relevant service-level `README.md`.
+- **Session Handoff:** When the user asks to save context or at the end of a productive session, update `SESSION.md` with what was completed, what's next, and any key decisions made. This enables seamless continuation in a new chat.
 - **Syncing:** Use the chat for planning. Do not create `implementation_notes.md`, `summary.md`, or temporary scratchpad files.
 
 ## 2. Development Workflow (TDD)
@@ -22,17 +23,21 @@ alwaysApply: true
 - **Prohibition:** Do not create a single, bloated root README for technical details; keep technical documentation local to the service.
 
 ## 4. Quality Control
+- **Function Documentation:** Add a single-sentence docstring or comment above every new function explaining its purpose.
 - **Linting & Formatting:** After finishing a logical block, run the linter/formatter (`Ruff` for Python, `Spotless/Checkstyle` for Java). Resolve all warnings before committing.
 - **Verification:** Ensure the project compiles and all tests pass in the terminal before considering a sub-task complete.
+- **Cleanup:** After resolving a debugging session, remove all temporary logging, file writes, and debug instrumentation before committing.
 
 ## 5. Git Strategy (Atomic Commits)
-- **Frequency:** Commit every time a single logical "win" is achieved (e.g., a new test passes, a model is defined, or a config is updated).
+- **Frequency:** Commit every time a single logical "win" is achieved (e.g., a new test passes, a model is defined, or a config is updated). Do NOT batch multiple wins into one commit. Do NOT defer commits to the end of a task.
 - **Format:** Use Conventional Commits: `type(scope): description`.
   - **Types:** `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`.
   - **Scopes:** `order`, `ai`, `infra`, `ui`, `global`.
-- **Checkpoint Rule:** The AI must suggest a specific git commit command after every successful execution that passes a test or lint check.
-- **Micro-Commit Rule** If a task involves multiple files or layers (e.g., a Test, then a Service, then a Controller), you must pause and suggest a commit after each layer is verified. Never combine logic changes and documentation/cleanup into a single commit.
+  - **Length limit:** The commit message subject line (first line) MUST be ≤120 characters. No exceptions. If it doesn't fit, shorten it.
+- **Checkpoint Rule:** The AI MUST run `git add` + `git commit` immediately after every successful test run or lint check. Do not wait for the user to ask. Do not continue to the next sub-task before committing the current one.
+- **Micro-Commit Rule:** If a task involves multiple files or layers (e.g., a Test, then a Service, then a Controller), you must commit after each layer is verified. Never combine logic changes and documentation/cleanup into a single commit.
+- **End-of-Task Gate:** Before marking any to-do as fully complete, verify that all changes for that to-do have been committed. If not, commit them first.
 
 # 6. Infrastructure Guardrails
-- **Ports:** Order Service: **8082** | AI Service: **5000** | Postgres: **5432** | DynamoDB: **9000**.
+- **Ports:** Order Service: **8082** | AI Service: **5050** | Postgres: **5432** | DynamoDB: **9000**.
 - **Local DB:** All DynamoDB connections MUST override the endpoint to `http://localhost:9000`.

@@ -165,42 +165,20 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public void ingestTelemetry(UUID orderId, TelemetryRequestDTO request) {
-        // #region agent log
-        try (var w = new java.io.FileWriter("d:\\Personal Projects\\ecostream\\.cursor\\debug.log", true)) {
-            Double lat = request != null ? request.getCurrentLatitude() : null;
-            Double lon = request != null ? request.getCurrentLongitude() : null;
-            w.write("{\"hypothesisId\":\"H4\",\"message\":\"ingestTelemetry entry\",\"data\":{\"orderId\":\"" + orderId + "\",\"lat\":" + lat + ",\"lon\":" + lon + "},\"timestamp\":" + System.currentTimeMillis() + "}\n");
-        } catch (Exception e) { /* ignore */ }
-        // #endregion
         log.debug("Ingesting telemetry for orderId: {}", orderId);
-        
-        // Get current timestamp in epoch seconds
+
         long timestamp = java.time.Instant.now().getEpochSecond();
-        
-        // Create telemetry entity
+
         Telemetry telemetry = Telemetry.builder()
                 .orderId(orderId.toString())
                 .timestamp(timestamp)
                 .currentLatitude(request.getCurrentLatitude())
                 .currentLongitude(request.getCurrentLongitude())
                 .build();
-        
-        // Save to DynamoDB
-        // #region agent log
-        try {
-            telemetryRepository.save(telemetry);
-        } catch (Exception e) {
-            try (var w = new java.io.FileWriter("d:\\Personal Projects\\ecostream\\.cursor\\debug.log", true)) {
-                String msg = e.getMessage() != null ? e.getMessage().replace("\"", "'") : "";
-                w.write("{\"hypothesisId\":\"H1,H2,H3,H5\",\"message\":\"save failed\",\"data\":{\"exceptionClass\":\"" + e.getClass().getName() + "\",\"message\":\"" + msg + "\"},\"timestamp\":" + System.currentTimeMillis() + "}\n");
-            } catch (Exception x) { /* ignore */ }
-            throw e;
-        }
-        // #endregion
-        
-        // Real-time monitoring: Log ingestion details to console
-        log.info("Telemetry ingested successfully for orderId: {}, timestamp: {}", orderId, timestamp);
-        System.out.println(String.format("[TELEMETRY] orderId=%s, timestamp=%d", orderId, timestamp));
+
+        telemetryRepository.save(telemetry);
+
+        log.info("Telemetry ingested for orderId: {}, timestamp: {}", orderId, timestamp);
     }
 
     /**

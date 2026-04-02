@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { fetchOrders } from './api/orderClient'
+import { fetchTelemetry, type TelemetryPosition } from './api/telemetryClient'
 import { OrderList } from './components/OrderList'
+import { DeliveryMap } from './components/DeliveryMap'
 import { AssistantChat } from './components/AssistantChat'
 import type { Order } from './api/types'
 import './App.css'
@@ -15,6 +17,7 @@ function App() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [autoRefresh, setAutoRefresh] = useState(true)
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null)
+  const [telemetry, setTelemetry] = useState<TelemetryPosition | null>(null)
   const isMounted = useRef(true)
 
   const loadOrders = useCallback((showLoading = true) => {
@@ -40,19 +43,41 @@ function App() {
       })
   }, [])
 
+  /** Fetch latest telemetry for the selected order. */
+  const loadTelemetry = useCallback((orderId: string | null) => {
+    if (!orderId) {
+      setTelemetry(null)
+      return
+    }
+    fetchTelemetry(orderId)
+      .then((pos) => {
+        if (isMounted.current) setTelemetry(pos)
+      })
+      .catch(() => {
+        if (isMounted.current) setTelemetry(null)
+      })
+  }, [])
+
   useEffect(() => {
     isMounted.current = true
     loadOrders(true)
-    return () => {
-      isMounted.current = false
-    }
+    return () => { isMounted.current = false }
   }, [loadOrders])
 
   useEffect(() => {
+    loadTelemetry(selectedOrderId)
+  }, [selectedOrderId, loadTelemetry])
+
+  useEffect(() => {
     if (!autoRefresh || fetchState !== 'success') return
-    const id = setInterval(() => loadOrders(false), POLL_INTERVAL_MS)
+    const id = setInterval(() => {
+      loadOrders(false)
+      loadTelemetry(selectedOrderId)
+    }, POLL_INTERVAL_MS)
     return () => clearInterval(id)
-  }, [autoRefresh, fetchState, loadOrders])
+  }, [autoRefresh, fetchState, loadOrders, loadTelemetry, selectedOrderId])
+
+  const selectedOrder = orders.find((o) => o.id === selectedOrderId) ?? null
 
   return (
     <main className="min-h-screen bg-slate-900 text-slate-100 p-6">
@@ -81,6 +106,7 @@ function App() {
             </button>
           </div>
         </div>
+
         {fetchState === 'loading' && orders.length === 0 && (
           <p className="text-slate-400 py-8" role="status">Loading orders…</p>
         )}
@@ -92,6 +118,7 @@ function App() {
             {errorMessage}
           </div>
         )}
+
         {(fetchState === 'success' || orders.length > 0) && (
           <OrderList
             orders={orders}
@@ -100,7 +127,19 @@ function App() {
             onSelectOrder={setSelectedOrderId}
           />
         )}
+
+        {/* key={selectedOrderId} prevents remounts during polling */}
+        {selectedOrderId && selectedOrder?.destination && (
+          <div className="mt-4" key={selectedOrderId}>
+            <DeliveryMap
+              destination={selectedOrder.destination}
+              currentPosition={telemetry}
+              orderId={selectedOrderId}
+            />
+          </div>
+        )}
       </div>
+
       <AssistantChat selectedOrderId={selectedOrderId} />
     </main>
   )
