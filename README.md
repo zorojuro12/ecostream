@@ -1,6 +1,5 @@
 # EcoStream
 
-[![CI](https://github.com/Your-Username/ecostream/actions/workflows/ci.yml/badge.svg)](https://github.com/Your-Username/ecostream/actions/workflows/ci.yml)
 
 **A serverless-ready, polyglot microservices platform utilizing GenAI for logistics optimization.**
 
