@@ -10,6 +10,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from mangum import Mangum
 
+from mangum import Mangum
 from app.api import assistant_routes, dev_routes, forecasting_routes
 from app.utils.logging_config import configure_logging
 
