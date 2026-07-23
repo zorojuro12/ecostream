@@ -7,10 +7,8 @@ resolve_image_repos = true
 s3_prefix = "ecostream-ai-forecasting"
 region = "us-east-1"
 capabilities = "CAPABILITY_IAM"
-confirm_changeset = true
-image_repository = ""
-# Override image_repository with your ECR URI:
-#   sam deploy --image-repository 123456789012.dkr.ecr.us-east-1.amazonaws.com/ecostream-ai
+confirm_changeset = false
+parameter_overrides = "S3LogBucket=ecostream-forecast-logs-052443862699 DynamoDbTableName=ecostream-telemetry-local"
 
 [default.build.parameters]
 use_container = false

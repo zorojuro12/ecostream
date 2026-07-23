@@ -61,3 +61,14 @@
 - [x] **Spec alignment:** Project is Cloud Ready; Order Service → RDS, AI Service → Lambda + DynamoDB + S3 logs, per EcoStream technical specification.
 - [x] **VERIFIED:** SAM template for Lambda deployment — `template.yaml` defines Lambda (container image), HTTP API Gateway with CORS, IAM policies (DynamoDB read, S3 put, Bedrock invoke). `samconfig.toml` for deployment defaults. `Dockerfile.lambda` copies `models/` for ML artifact. CORS origins env-configurable (`CORS_ALLOWED_ORIGINS`). Deploy script `scripts/deploy-lambda.sh`. 17/17 Python tests pass.
 - [x] **VERIFIED:** Structured JSON logging — `JsonFormatter` outputs single-line JSON (`timestamp`, `level`, `logger`, `message`, optional `exception`). Configured at startup via `configure_logging()`. `LOG_LEVEL` env-configurable (default INFO). 2 new tests, 19/19 Python tests pass.
+
+## Phase 6: Live AWS Deployment
+- [x] **VERIFIED:** AWS IAM user `ecostream-dev` configured with permissions for Lambda, API Gateway, ECR, CloudFormation, S3, DynamoDB.
+- [x] **VERIFIED:** S3 bucket `ecostream-forecast-logs-052443862699` created in us-east-1.
+- [x] **VERIFIED:** Real DynamoDB table `ecostream-telemetry-local` created in AWS (us-east-1, PAY_PER_REQUEST billing, same key schema as local).
+- [x] **VERIFIED:** `sam build` — Docker container image built from `Dockerfile.lambda` (Python 3.10 Lambda base, app + models).
+- [x] **VERIFIED:** `sam deploy` — CloudFormation stack `ecostream-ai-forecasting` deployed to us-east-1. Lambda function ARN: `arn:aws:lambda:us-east-1:052443862699:function:ecostream-ai-forecasting-AiForecastingFunction-aPH66Y7EkT69`. API Gateway endpoint: `https://pdhwud69fj.execute-api.us-east-1.amazonaws.com/prod`.
+- [x] **VERIFIED:** `GET /prod/health` → `{"status":"healthy","service":"ai-forecasting"}` — Lambda responding live via API Gateway.
+- [x] **VERIFIED:** `POST /prod/api/forecast/test-order-001` → `{"distance_km":6.29,"estimated_arrival_minutes":37.7}` — end-to-end: API Gateway → Lambda → real DynamoDB → Haversine + ML → response.
+- [x] **VERIFIED:** S3 forecast log `delivery-logs/forecasts/test-order-001_20260331T182442Z.json` written by Lambda to `s3://ecostream-forecast-logs-052443862699` — fire-and-forget S3 logging confirmed live.
+- [x] Mangum `lifespan="off"` and `api_gateway_base_path="/prod"` set for HTTP API Gateway V2 compatibility.

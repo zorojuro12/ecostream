@@ -2,9 +2,9 @@
 
 [![CI](https://github.com/Your-Username/ecostream/actions/workflows/ci.yml/badge.svg)](https://github.com/Your-Username/ecostream/actions/workflows/ci.yml)
 
-**A serverless-ready, polyglot microservices platform utilizing GenAI for logistics optimization.**
+**A deployed, polyglot microservices platform utilizing GenAI for logistics optimization.**
 
-EcoStream combines real-time delivery telemetry, ML-based ETA forecasting, and a context-aware **Logistics Assistant** (Claude via Amazon Bedrock) to optimize last-mile delivery. Built with Java (Order Service), Python (AI Service), and a TypeScript/React dashboard — running locally today with a clear path to AWS.
+EcoStream combines real-time delivery telemetry, ML-based ETA forecasting, and a context-aware **Logistics Assistant** (Claude via Amazon Bedrock) to optimize last-mile delivery. Built with Java (Order Service), Python (AI Service), and a TypeScript/React dashboard — running locally and **deployed to AWS Lambda + API Gateway**.
 
 ---
 
@@ -13,13 +13,14 @@ EcoStream combines real-time delivery telemetry, ML-based ETA forecasting, and a
 | Service | Stack | Port | Role |
 |---------|-------|------|------|
 | **Order Service** | Java 21, Spring Boot 3.4 | **8082** | CRUD + telemetry ingestion (DynamoDB); enriches orders with ETA from AI service. Resilience4j circuit breaker on AI client; Actuator health/CB-state endpoints. Environment-aware DB config for RDS migration. |
-| **AI Forecasting Service** | Python 3.x, FastAPI | **5050** | ETA via Haversine + RandomForest ML model (trained on NYC Taxi data); Logistics Assistant chat (Bedrock, Claude 3.5 Haiku); S3 forecast logging; structured JSON logging. Lambda-ready (SAM + Mangum + Docker). |
+| **AI Forecasting Service** | Python 3.x, FastAPI | **5050** (local) | ETA via Haversine + RandomForest ML model (trained on NYC Taxi data); Logistics Assistant chat (Bedrock, Claude 3.5 Haiku); S3 forecast logging; structured JSON logging. **Deployed to AWS Lambda + API Gateway** (SAM + Mangum + Docker). |
 | **Dashboard** | TypeScript, React, Vite, Tailwind | **5173** | Order list with Distance/ETA and live-tracking pulse; **live delivery map** (Leaflet.js, CARTO dark tiles, vehicle/destination markers, route polyline); floating Logistics Assistant chat. |
 | **PostgreSQL** | Docker | 5432 | Order persistence. |
 | **DynamoDB Local** | Docker | **9000** | Real-time telemetry (orderId + timestamp). |
 
 - **Single Source of Truth:** The Order Service owns order and destination data; the AI service and dashboard consume it via APIs.
-- **Technical spec:** See [spec.md](spec.md) for architecture, data models, API contracts, and target cloud (API Gateway, Lambda, RDS, DynamoDB, S3, Bedrock, CloudWatch).
+- **Live AWS deployment:** AI service deployed to Lambda + API Gateway (us-east-1). Endpoint: `https://pdhwud69fj.execute-api.us-east-1.amazonaws.com/prod`
+- **Technical spec:** See [spec.md](spec.md) for architecture, data models, API contracts, and cloud deployment (API Gateway, Lambda, RDS, DynamoDB, S3, Bedrock, CloudWatch).
 
 ---
 
@@ -96,7 +97,7 @@ EcoStream combines real-time delivery telemetry, ML-based ETA forecasting, and a
 |-------|-------------|
 | **Backend** | Java 21 (Spring Boot 3.4, Resilience4j, Actuator), Python (FastAPI, Mangum) |
 | **Frontend** | TypeScript, React 19, Vite, Tailwind, Leaflet.js |
-| **Data** | PostgreSQL (orders), DynamoDB (telemetry), S3 (forecast logs) |
+| **Data** | PostgreSQL (orders, local/RDS-ready), DynamoDB (telemetry, local + **live AWS**), S3 (forecast logs, **live AWS**) |
 | **AI/ML** | Amazon Bedrock (Claude 3.5 Haiku), Scikit-Learn (RandomForest) |
 | **Infrastructure** | Docker, Docker Compose, AWS SAM (Lambda + API Gateway) |
 | **CI/CD** | GitHub Actions (3 jobs: Java, Python, Dashboard) |
@@ -118,18 +119,34 @@ CI workflow (`.github/workflows/ci.yml`) triggers on push/PR to `main`:
 
 ### Lambda Deployment (AI Service)
 
-The AI service deploys to AWS Lambda as a container image via **SAM**:
+The AI service is **live on AWS** — deployed as a container image via **AWS SAM**.
+
+**Live endpoint:** `https://pdhwud69fj.execute-api.us-east-1.amazonaws.com/prod`
+
+```bash
+# Verify the live deployment
+curl https://pdhwud69fj.execute-api.us-east-1.amazonaws.com/prod/health
+# → {"status":"healthy","service":"ai-forecasting"}
+```
+
+To redeploy after changes:
 
 ```bash
 cd services/ai-forecasting-python
-sam build
-sam deploy --guided   # first time
-sam deploy            # subsequent (uses samconfig.toml defaults)
+sam build && sam deploy
 ```
 
-Or use the one-command script: `./scripts/deploy-lambda.sh`
+Or use the deploy script: `./scripts/deploy-lambda.sh`
 
-**What gets deployed:** Lambda function (container image with FastAPI + ML model), HTTP API Gateway (catch-all proxy with CORS), IAM role (DynamoDB read, S3 put, Bedrock invoke).
+**Deployed resources (CloudFormation stack `ecostream-ai-forecasting`, us-east-1):**
+
+| Resource | Details |
+|---|---|
+| **Lambda function** | Container image (Python 3.10, FastAPI + ML model), 512MB, 30s timeout |
+| **HTTP API Gateway** | Catch-all proxy with CORS; routes all requests to Lambda |
+| **IAM role** | Least-privilege: DynamoDB read, S3 put, Bedrock invoke |
+| **DynamoDB table** | `ecostream-telemetry-local` (us-east-1, PAY_PER_REQUEST) |
+| **S3 bucket** | `ecostream-forecast-logs-052443862699` — receives JSON forecast logs |
 
 See [services/ai-forecasting-python/README.md](services/ai-forecasting-python/README.md) for full deployment docs.
 

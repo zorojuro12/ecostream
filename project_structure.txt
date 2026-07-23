@@ -3,38 +3,62 @@ services
 docker-compose.yml
 progress.md
 README.md
+SESSION.md
 spec.md
 start-ai-service.ps1
 start-ai-service.sh
   |-- web-dashboard-ts
   |-- ai-forecasting-python
   |-- order-service-java
+  |-- web-dashboard-ts
     |-- .ruff_cache
     |-- app
+    |-- data
+    |-- models
     |-- tests
     |-- .env
+    |-- Dockerfile.lambda
     |-- README.md
     |-- requirements.txt
       |-- 0.8.0
       |-- CACHEDIR.TAG
+        |-- 1206749260644008925
         |-- 12243352946582534464
+        |-- 15797727786436658221
+        |-- 7311433261564183918
         |-- 7674208168582431412
       |-- api
       |-- engine
       |-- services
+      |-- utils
       |-- main.py
       |-- __init__.py
+        |-- assistant_routes.py
+        |-- dev_routes.py
         |-- forecasting_routes.py
         |-- schemas.py
-        |-- test_routes.py
         |-- __init__.py
+        |-- bedrock_client.py
         |-- forecaster.py
+        |-- model_loader.py
+        |-- assistant_service.py
         |-- forecasting_service.py
         |-- telemetry_service.py
         |-- __init__.py
+        |-- s3_logger.py
+        |-- __init__.py
+      |-- raw
+      |-- training_data.csv
+        |-- train.csv
+      |-- speed_model.joblib
       |-- unit
+      |-- test_assistant_api.py
+      |-- test_assistant_service.py
+      |-- test_bedrock_client.py
+      |-- test_forecast_api.py
       |-- __init__.py
         |-- test_forecaster.py
+        |-- test_ml_engine.py
         |-- __init__.py
     |-- src
     |-- pom.xml
@@ -46,6 +70,7 @@ start-ai-service.sh
           |-- com
             |-- ecostream
               |-- order
+                |-- client
                 |-- config
                 |-- controller
                 |-- dto
@@ -53,12 +78,18 @@ start-ai-service.sh
                 |-- repository
                 |-- service
                 |-- OrderServiceApplication.java
+                  |-- ForecastingClient.java
+                  |-- ForecastingClientImpl.java
+                  |-- ForecastRequestDTO.java
+                  |-- ForecastResponseDTO.java
                   |-- DynamoDbConfig.java
+                  |-- RestTemplateConfig.java
                   |-- HealthController.java
                   |-- OrderController.java
                   |-- LocationDTO.java
                   |-- OrderRequestDTO.java
                   |-- OrderResponseDTO.java
+                  |-- TelemetryRequestDTO.java
                   |-- UpdateOrderRequestDTO.java
                   |-- Order.java
                   |-- OrderStatus.java
@@ -73,9 +104,53 @@ start-ai-service.sh
           |-- com
             |-- ecostream
               |-- order
+                |-- client
                 |-- controller
                 |-- entity
                 |-- service
+                  |-- ForecastingClientCircuitBreakerTest.java
+                  |-- ForecastingClientImplTest.java
                   |-- OrderControllerTest.java
                   |-- OrderTest.java
+                  |-- OrderServiceForecastingIntegrationTest.java
                   |-- OrderServiceTest.java
+    |-- .vite
+    |-- dist
+    |-- public
+    |-- src
+    |-- eslint.config.js
+    |-- index.html
+    |-- package-lock.json
+    |-- package.json
+    |-- README.md
+    |-- tsconfig.app.json
+    |-- tsconfig.json
+    |-- tsconfig.node.json
+    |-- vite.config.ts
+      |-- deps
+        |-- package.json
+        |-- _metadata.json
+      |-- assets
+      |-- index.html
+      |-- vite.svg
+        |-- index-BZ3Mh4if.js
+        |-- index-CKkhzRNp.css
+      |-- vite.svg
+      |-- api
+      |-- assets
+      |-- components
+      |-- test
+      |-- App.css
+      |-- App.tsx
+      |-- index.css
+      |-- main.tsx
+        |-- assistantClient.ts
+        |-- orderClient.test.ts
+        |-- orderClient.ts
+        |-- telemetryClient.ts
+        |-- types.ts
+        |-- react.svg
+        |-- AssistantChat.tsx
+        |-- DeliveryMap.tsx
+        |-- OrderList.tsx
+        |-- setup.ts

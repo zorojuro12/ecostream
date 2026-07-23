@@ -54,7 +54,7 @@ async def health_check():
     return {"status": "healthy", "service": "ai-forecasting"}
 
 
-handler = Mangum(app)
+handler = Mangum(app, lifespan="off", api_gateway_base_path="/prod")
 
 
 if __name__ == "__main__":

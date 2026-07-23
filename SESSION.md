@@ -1,7 +1,7 @@
 # EcoStream Session State
 
 ## Last Updated
-2026-03-29 — Structured JSON logging (Priority #8)
+2026-03-31 — Live AWS deployment (Lambda + API Gateway + DynamoDB + S3)
 
 ## Priority List (Interview Readiness)
 
@@ -35,8 +35,9 @@ All 8 priorities complete.
 
 ## Active Context
 - **Branch:** `feat/cloud-readiness`
-- **Just completed:** Priority #8 — Structured JSON logging. `JsonFormatter` outputs single-line JSON to stdout. Configured at app startup, `LOG_LEVEL` env-configurable. 19/19 Python tests pass.
-- **All priorities complete.** Project is interview-ready.
+- **Just completed:** Live AWS deployment. Lambda + API Gateway + DynamoDB + S3 all verified live in us-east-1.
+- **Live endpoint:** `https://pdhwud69fj.execute-api.us-east-1.amazonaws.com/prod`
+- **All priorities complete.** Project is interview-ready with real deployed AWS infrastructure.
 
 ## Key Decisions Made
 - **Circuit breaker config:** Count-based sliding window (size=10, threshold=50%, min calls=5) — request volume is low so time-based would need higher traffic. 10s wait in OPEN, 3 probes in HALF_OPEN.
